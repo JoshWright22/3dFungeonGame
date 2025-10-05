@@ -8,23 +8,23 @@ The game focuses on tension, exploration, and emergent storytelling, where every
 ---
 
 ## Core Features
-- **Procedural 3D Dungeons** – dynamically generated levels built from modular room chunks for endless replayability.  
-- **Descriptive, Generative Loot** – items feature mechanical modifiers and flavorful text reflecting their origin and traits.  
-- **Playable Classes** – multiple unique archetypes with distinct skills, cooldown systems, and cooperative roles.  
-- **Dynamic Encounters** – rooms include traps, puzzles, and monsters that encourage communication and strategic choices.  
-- **Meta-Progression** – unlock new class variants, room types, and loot templates through successful runs.  
-- **Moddable Design** – content is defined through JSON and prefab data for easy expansion.
+- **Procedural 3D Dungeons** – Dynamically generated levels built from modular room chunks for endless replayability.  
+- **Descriptive, Generative Loot** – Items feature mechanical modifiers and flavorful text reflecting their origin and traits.  
+- **Playable Classes** – Multiple unique archetypes with distinct skills, cooldown systems, and cooperative roles.  
+- **Dynamic Encounters** – Rooms include traps, puzzles, and monsters that encourage communication and strategic choices.  
+- **Meta-Progression** – Unlock new class variants, room types, and loot templates through successful runs.  
+- **Moddable Design** – Content is defined through JSON and prefab data for easy expansion.
 
 ---
 
 ## Project Structure
 ```
 Assets/
- ├── Scripts/       # core C# scripts (generation, combat, items, etc.)
- ├── Prefabs/       # modular room chunks, traps, and interactables
+ ├── Scripts/       # Core C# scripts for the game (not all are mine; I am the only one making the game)
+ ├── Prefabs/       # Modular room chunks, traps, and interactables
  ├── Data/          # JSON files defining loot, enemies, and classes
- ├── Editor/        # custom Unity editor tools
- └── Scenes/        # testing and gameplay scenes
+ ├── Editor/        # Custom Unity editor tools
+ └── Scenes/        # Testing and gameplay scenes
 ```
 
 ---
@@ -38,7 +38,7 @@ Assets/
 ---
 
 ## Controls
-Standard first-person or third-person movement. Controls are configurable in the Unity input settings and support keyboard/mouse or gamepad.
+Standard first-person or third-person movement. Controls are configurable in the Unity Input settings and support keyboard/mouse or gamepad.
 
 ---
 
