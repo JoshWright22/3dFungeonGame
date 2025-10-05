@@ -20,11 +20,24 @@ The game focuses on tension, exploration, and emergent storytelling, where every
 ## Project Structure
 ```
 Assets/
- ├── Scripts/       # Core C# scripts for the game (not all are mine; I am the only one making the game)
- ├── Prefabs/       # Modular room chunks, traps, and interactables
- ├── Data/          # JSON files defining loot, enemies, and classes
- ├── Editor/        # Custom Unity editor tools
- └── Scenes/        # Testing and gameplay scenes
+├── Scripts/
+│ BlueRaja
+│ Dungeon Generator
+│ Network
+│ PickUpItems
+│ PlayerMovement
+│ PlayerStats
+│ RoomGeneration
+│ Shaders
+│ README.md
+├── Prefabs/
+│ (Modular room chunks, traps, interactables)
+├── Data/
+│ (JSON files for loot, enemies, classes)
+├── Editor/
+│ (Custom Unity editor tools)
+└── Scenes/
+(Testing and gameplay scenes)
 ```
 
 ---
