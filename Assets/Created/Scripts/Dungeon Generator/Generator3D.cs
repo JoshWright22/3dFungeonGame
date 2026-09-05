@@ -123,6 +123,10 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     float wallYNudge = 0f;
 
+    [Tooltip("Synty wall and doorway meshes are single-sided: the back face is invisible. Spawn a mirrored copy so both sides are textured. Doubles wall geometry - turn off only if you are sure no back face is ever visible.")]
+    [SerializeField]
+    bool doubleSidedWalls = true;
+
     [Header("Debug")]
     [SerializeField]
     bool drawHallwayGizmos = false;
@@ -424,9 +428,26 @@ public class Generator3D : MonoBehaviour
 
         // Face the wall back into the room it encloses.
         Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
-        Vector3 right = rotation * Vector3.right;
+        SpawnWallPiece(prefab, boundary, rotation);
+    }
 
+    /// <summary>
+    /// Stands a wall-sized piece centred on a cell boundary, and - because the Synty wall meshes
+    /// only have faces on one side - optionally a mirrored copy so the far side is not a hole.
+    ///
+    /// The piece spans 5 units along its own -X from a pivot at one end, so centring means
+    /// offsetting half a cell along its right vector. The mirror's right vector points the other
+    /// way, which is why it offsets in the opposite direction rather than reusing the position.
+    /// </summary>
+    void SpawnWallPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
+    {
+        Vector3 right = rotation * Vector3.right;
         Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
+
+        if (!doubleSidedWalls) return;
+
+        Quaternion mirrored = rotation * Quaternion.Euler(0f, 180f, 0f);
+        Spawn(prefab, boundary - right * HalfWorldUnit, mirrored);
     }
 
     /// <summary>
@@ -527,6 +548,32 @@ public class Generator3D : MonoBehaviour
         return new Vector3(HalfWorldUnit - b.center.x, 0f, HalfWorldUnit - b.center.z);
     }
 
+    /// <summary>
+    /// Position at which to spawn a rotated prefab so its geometry lands centred on
+    /// <paramref name="cellCentreWorld"/>.
+    ///
+    /// Rotating a prefab swings its pivot around its geometry, so a pivot offset measured on the
+    /// unrotated mesh is only valid unrotated. Solving position + rotation * localCentre = target
+    /// keeps it correct at any angle - which is what the stairs needed.
+    /// </summary>
+    Vector3 CentredSpawnPosition(GameObject prefab, Vector3 cellCentreWorld, Quaternion rotation, float worldY)
+    {
+        Vector3 localCentre = Vector3.zero;
+
+        if (prefab != null)
+        {
+            MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
+            if (renderer != null)
+            {
+                Bounds b = renderer.bounds;
+                localCentre = new Vector3(b.center.x, 0f, b.center.z);
+            }
+        }
+
+        Vector3 offset = rotation * localCentre;
+        return new Vector3(cellCentreWorld.x - offset.x, worldY, cellCentreWorld.z - offset.z);
+    }
+
     /// <summary>World-space centre of a grid cell, at its floor line (y before floor thickness).</summary>
     Vector3 CellCentre(Vector3Int cell)
     {
@@ -535,35 +582,37 @@ public class Generator3D : MonoBehaviour
 
     /// <summary>
     /// Distance from a prefab's pivot up to the top of the surface a character collides with.
-    /// Prefers the collider over the renderer: the mesh sits slightly proud of the collision
-    /// hull, and placing anything from the mesh bounds leaves it floating.
+    ///
+    /// Deliberately avoids Collider.bounds: on a prefab ASSET that returns an empty box, because
+    /// bounds are only computed for a collider living in a scene. Reading the collider's own
+    /// geometry works on assets, which is what this is called with.
     /// </summary>
     float GetTopOffset(GameObject prefab)
     {
         if (prefab == null) return 0f;
 
-        Collider collider = prefab.GetComponentInChildren<Collider>();
-        if (collider != null)
-            return collider.bounds.center.y + collider.bounds.extents.y;
+        float best = float.NegativeInfinity;
 
+        foreach (var box in prefab.GetComponentsInChildren<BoxCollider>())
+        {
+            float top = box.transform.localPosition.y
+                + (box.center.y + box.size.y * 0.5f) * box.transform.localScale.y;
+            best = Mathf.Max(best, top);
+        }
+
+        foreach (var mesh in prefab.GetComponentsInChildren<MeshCollider>())
+        {
+            if (mesh.sharedMesh == null) continue;
+            float top = mesh.transform.localPosition.y
+                + mesh.sharedMesh.bounds.max.y * mesh.transform.localScale.y;
+            best = Mathf.Max(best, top);
+        }
+
+        if (!float.IsNegativeInfinity(best)) return best;
+
+        // No collider at all - fall back to what is drawn.
         MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
-        if (renderer == null) return 0f;
-
-        return renderer.bounds.center.y + renderer.bounds.extents.y;
-    }
-
-    /// <summary>
-    /// A stable stand-in for measuring tile geometry. Every variant is the same size, so any of
-    /// them will do - but it must not consume a random draw, because offsets are calculated
-    /// before the run's RNG is seeded.
-    /// </summary>
-    GameObject RepresentativeFloorPrefab()
-    {
-        if (floorPrefabs != null)
-            foreach (var p in floorPrefabs)
-                if (p != null) return p;
-
-        return cubePrefab;
+        return renderer == null ? 0f : renderer.bounds.center.y + renderer.bounds.extents.y;
     }
 
     /// <summary>A floor tile variant, or the single legacy prefab when no variants are set.</summary>
@@ -905,39 +954,30 @@ public class Generator3D : MonoBehaviour
         // The half-step height (2.5 units) in the world
         float halfStepHeight = WorldUnitSize / 2f;
 
-        // The stair mesh has its own pivot corner (-X/+Z), distinct from both the floor tile's
-        // and the cell centre, so it gets its own offset. Vertically it stands on the floor
-        // surface like everything else rather than on a mesh-extent guess.
-        Vector3 stairPivot = PivotOffsetFor(stairPrefab);
-        Vector3 pivotOffset = new Vector3(stairPivot.x, FloorSurfaceOffset, stairPivot.z);
-
-        Vector3 gridStairOne = prev + horizontalOffset;
-        Vector3 stairOneWorldCenter = gridStairOne * WorldUnitSize + pivotOffset;
-
-        Vector3 gridStairFour = prev + horizontalOffset * 2 + verticalOffset;
-        Vector3 stairFourWorldCenter = gridStairFour * WorldUnitSize + pivotOffset;
+        Vector3Int gridStairOne = prev + horizontalOffset;
+        Vector3Int gridStairFour = prev + horizontalOffset * 2 + verticalOffset;
 
         // The direction for rotation
         Vector3 direction = new Vector3(xDir * -1f, 0, zDir * -1f);
+        bool goingUp = delta.y > 0;
 
-        if (delta.y > 0) // Going up (from prev to current)
-        {
-            // Stair 1 (Lower step): Base of stair at Y=floor_level (Y=0). The pivot is at Y=StairFloorOffset.
-            Spawn(stairPrefab, stairOneWorldCenter, Quaternion.LookRotation(direction * -1f, Vector3.up));
+        Quaternion rotation = goingUp
+            ? Quaternion.LookRotation(direction * -1f, Vector3.up)
+            : Quaternion.LookRotation(direction, Vector3.up);
 
-            // Stair 4 (Upper step): Base of stair at Y=WorldUnitSize (Y=5) + halfStepHeight (2.5). 
-            // stairFourWorldCenter's Y is StairFloorOffset (Y=5 floor level). Add 2.5 for the ramp height.
-            Spawn(stairPrefab, stairFourWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction * -1f, Vector3.up));
-        }
-        else if (delta.y < 0) // Going down (from prev to current)
-        {
-            // Stair 1 (Upper step): Base of stair at Y=WorldUnitSize (Y=5) + halfStepHeight (2.5). 
-            // stairOneWorldCenter's Y is StairFloorOffset (Y=5 floor level). Add 2.5 for the ramp height.
-            Spawn(stairPrefab, stairOneWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction, Vector3.up));
+        // Each ramp piece is centred in its own cell at that cell's floor height. Going up, the
+        // second piece starts half a storey higher; going down, the first one does.
+        float lowerY = gridStairOne.y * WorldUnitSize + FloorSurfaceOffset;
+        float upperY = gridStairFour.y * WorldUnitSize + FloorSurfaceOffset;
 
-            // Stair 4 (Lower step): Base of stair at Y=floor_level (Y=0). The pivot is at Y=StairFloorOffset.
-            Spawn(stairPrefab, stairFourWorldCenter, Quaternion.LookRotation(direction, Vector3.up));
-        }
+        Vector3 oneCentre = CellCentre(gridStairOne);
+        Vector3 fourCentre = CellCentre(gridStairFour);
+
+        float oneY = goingUp ? lowerY : lowerY + halfStepHeight;
+        float fourY = goingUp ? upperY + halfStepHeight : upperY;
+
+        Spawn(stairPrefab, CentredSpawnPosition(stairPrefab, oneCentre, rotation, oneY), rotation);
+        Spawn(stairPrefab, CentredSpawnPosition(stairPrefab, fourCentre, rotation, fourY), rotation);
     }
 
     /// <summary>
@@ -957,14 +997,18 @@ public class Generator3D : MonoBehaviour
             + new Vector3(0f, FloorSurfaceOffset + wallYNudge, 0f);
 
         Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
-        Vector3 right = rotation * Vector3.right;
 
-        GameObject door = Spawn(DoorPrefab(), boundary + right * HalfWorldUnit, rotation);
-        if (door == null || !makeDoorwaysPassable) return;
+        // A doorway is seen from both sides by definition - it is the one piece you walk through -
+        // so it needs the mirrored copy even more than a plain wall does.
+        int before = dungeonRoot.childCount;
+        SpawnWallPiece(DoorPrefab(), boundary, rotation);
+
+        if (!makeDoorwaysPassable) return;
 
         // Only needed for prefabs whose collider spans the opening. The Synty wall-doorframe
         // pieces use MeshColliders, which already leave the doorway walkable.
-        foreach (var collider in door.GetComponentsInChildren<Collider>(true))
-            collider.enabled = false;
+        for (int i = before; i < dungeonRoot.childCount; i++)
+            foreach (var collider in dungeonRoot.GetChild(i).GetComponentsInChildren<Collider>(true))
+                collider.enabled = false;
     }
 }
