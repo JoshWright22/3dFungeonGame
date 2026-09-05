@@ -212,6 +212,13 @@ public class Generator3D : MonoBehaviour
     /// it was an open hole you could walk into from the level below.
     /// </summary>
     readonly HashSet<Vector3Int> stairUnderFloors = new HashSet<Vector3Int>();
+
+    /// <summary>
+    /// Every cell the party can actually stand in, from the reachability pass. Kept so the wall
+    /// pass can seal anything outside it: if you cannot get somewhere, you should not be able to
+    /// see or step into it either.
+    /// </summary>
+    readonly HashSet<Vector3Int> reachableCells = new HashSet<Vector3Int>();
     readonly List<(Vector3Int cell, Vector3Int dir)> doorways = new List<(Vector3Int, Vector3Int)>();
 
     // Define the world unit size for one grid cell
@@ -280,6 +287,7 @@ public class Generator3D : MonoBehaviour
         stairMouths.Clear();
         stairFlanks.Clear();
         stairUnderFloors.Clear();
+        reachableCells.Clear();
         doorways.Clear();
         entryRoom = null;
 
@@ -295,14 +303,16 @@ public class Generator3D : MonoBehaviour
         CreateHallways();
         PathfindHallways();
 
+        // Staircase sides are decided first: the prune has to know which faces are walled before
+        // it can tell which rooms are genuinely reachable.
+        MapStairMouths();
+
         // Layout is only final once everything the party cannot reach has been carved back out.
         SelectEntryRoom();
         int pruned = PruneUnreachable();
 
         // Geometry is built from the finished grid in one pass, so nothing is ever spawned for a
         // region that later turns out to be unreachable.
-        MapStairMouths();
-
         SpawnFloors();
         SpawnStairs();
         SpawnDoorways();
@@ -430,6 +440,11 @@ public class Generator3D : MonoBehaviour
                 Vector3Int next = cell + dir;
                 if (!grid.InBounds(next)) continue;
                 if (!HasFloor(grid[next])) continue;
+
+                // A walled staircase side is not a route, however open the grid looks.
+                if (stairFlanks.Contains((cell, dir))) continue;
+                if (stairFlanks.Contains((next, -dir))) continue;
+
                 if (reachable.Add(next)) queue.Enqueue(next);
             }
 
@@ -444,6 +459,12 @@ public class Generator3D : MonoBehaviour
             }
         }
 
+        // The cells under a staircase are structure, not route: nothing walks through them, so
+        // the flood never reaches them. Keep them anyway - carving them out takes their floor
+        // with it and reopens the hole beneath the ramp.
+        foreach (var c in stairUnderFloors)
+            if (grid.InBounds(c)) reachable.Add(c);
+
         // Carve back anything the flood never touched.
         for (int x = 0; x < size.x; x++)
         for (int y = 0; y < size.y; y++)
@@ -455,6 +476,9 @@ public class Generator3D : MonoBehaviour
 
             grid[cell] = CellType.None;
         }
+
+        reachableCells.Clear();
+        foreach (var c in reachable) reachableCells.Add(c);
 
         // Drop rooms with no reachable floor left, and the staircases and doorways that served them.
         int before = rooms.Count;
@@ -527,11 +551,11 @@ public class Generator3D : MonoBehaviour
             Vector3Int perpA = new Vector3Int(h.z, 0, h.x);
             Vector3Int perpB = -perpA;
 
-            // Deliberately excludes the last ramp cell (run.Upper). The corridor continues from
-            // there and may turn, so forcing walls on its perpendiculars seals the way out - that
-            // is what made staircases run straight into a wall at the top. The three interior
-            // ramp cells are never a junction, so walling their flanks is always safe.
-            foreach (var cell in new[] { run.Prev + h, run.Prev + h * 2, run.Prev + run.Vertical + h })
+            // Every ramp cell, including the last. A staircase opens at its two ends and nowhere
+            // else - if that cuts a room off, the reachability pass carves the room out rather
+            // than leaving a staircase spilling sideways into it.
+            foreach (var cell in new[] { run.Prev + h, run.Prev + h * 2,
+                                         run.Prev + run.Vertical + h, run.Prev + run.Vertical + h * 2 })
             {
                 stairFlanks.Add((cell, perpA));
                 stairFlanks.Add((cell, perpB));
@@ -549,6 +573,24 @@ public class Generator3D : MonoBehaviour
             int lowestY = int.MaxValue;
             foreach (var c in quad) lowestY = Mathf.Min(lowestY, c.y);
             foreach (var c in quad) if (c.y == lowestY) stairUnderFloors.Add(c);
+
+            // The lower-level cell WITHOUT a ramp in it is the wedge under the upper ramp. It is
+            // floored so nobody falls through, but it is not a place worth walking into - a dead
+            // end with the ramp's underside as a sloping ceiling. Seal its outward face.
+            //
+            // Only that one face: the face toward the lower ramp has to stay open, because the
+            // climb passes over this cell at half a storey up.
+            Vector3Int lowerRamp = run.Prev + h;
+            Vector3Int deadEnd = (run.Prev + h * 2).y == lowestY
+                ? run.Prev + h * 2
+                : run.Prev + run.Vertical + h;
+
+            if (deadEnd != lowerRamp)
+            {
+                stairFlanks.Add((deadEnd, h));
+                stairFlanks.Add((deadEnd, -h));
+                stairFlanks.Remove((lowerRamp, h));
+            }
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
@@ -690,9 +732,15 @@ public class Generator3D : MonoBehaviour
 
                 // Leave the staircase mouths open, but only those - a ramp running alongside a
                 // corridor is not a way through, and skipping its wall leaves a hole to fall down.
-                if (stairMouths.Contains((cell, dir))) continue;
+                // A sealed dead end beats the exemption: it is not a route.
+                bool sealed_ = stairFlanks.Contains((cell, dir));
+                if (!sealed_ && stairMouths.Contains((cell, dir))) continue;
 
-                bool enclose = !inBounds || !IsWalkable(beyond);
+                // Anything outside the reachable set is sealed, whatever the grid says it is.
+                // A space you cannot get to should not be visible from one you can.
+                bool unreachableBeyond = inBounds && HasFloor(beyond) && !reachableCells.Contains(neighbour);
+
+                bool enclose = !inBounds || !IsWalkable(beyond) || unreachableBeyond;
 
                 // A guard wall stops you strolling off a floor into open space that has none -
                 // an upper corridor meeting a room's headroom, for instance.
