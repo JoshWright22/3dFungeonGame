@@ -585,12 +585,10 @@ public class Generator3D : MonoBehaviour
                 ? run.Prev + h * 2
                 : run.Prev + run.Vertical + h;
 
+            // Only the OUTWARD face. The face back toward the lower ramp is the one the climb
+            // passes through - sealing it puts a wall straight across the middle of the stairs.
             if (deadEnd != lowerRamp)
-            {
                 stairFlanks.Add((deadEnd, h));
-                stairFlanks.Add((deadEnd, -h));
-                stairFlanks.Remove((lowerRamp, h));
-            }
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
