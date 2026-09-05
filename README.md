@@ -1,123 +1,71 @@
 # 3dFungeonGame
 
-## Overview
-3dFungeonGame is a cooperative, DnD-inspired 3D dungeon crawler made in Unity and C#. Players explore procedurally generated dungeons filled with traps, enemies, and mysterious loot. Every run offers new layouts, item combinations, and class synergies, encouraging teamwork and creative problem-solving.
+A co-op, D&D-flavoured 3D dungeon crawler for Unity 6.3 — procedurally generated
+dungeons, rolled ability scores, and four friends who mostly make things worse for
+each other. Think a tabletop dungeon delve run at *Lethal Company* tension levels,
+with proximity voice chat doing most of the comedy and most of the horror.
 
-The game focuses on tension, exploration, and emergent storytelling, where every item, encounter, and decision can shape the outcome of a run.
-
----
-
-## Core Features
-- **Procedural 3D Dungeons** – Dynamically generated levels built from modular room chunks for endless replayability.  
-- **Descriptive, Generative Loot** – Items feature mechanical modifiers and flavorful text reflecting their origin and traits.  
-- **Playable Classes** – Multiple unique archetypes with distinct skills, cooldown systems, and cooperative roles.  
-- **Dynamic Encounters** – Rooms include traps, puzzles, and monsters that encourage communication and strategic choices.  
-- **Meta-Progression** – Unlock new class variants, room types, and loot templates through successful runs.  
-- **Moddable Design** – Content is defined through JSON and prefab data for easy expansion.
+**Engine:** Unity `6000.3.23f1` (LTS) · URP 17.3.0
+**Networking:** Netcode for GameObjects 2.1.1 over the Facepunch (Steam) transport
 
 ---
 
-## Project Structure
+## Repository layout
+
 ```
 Assets/
-├── Scripts/
-│ BlueRaja
-│ Dungeon Generator
-│ Network
-│ PickUpItems
-│ PlayerMovement
-│ PlayerStats
-│ RoomGeneration
-│ Shaders
-│ README.md
-├── Prefabs/
-│ (Modular room chunks, traps, interactables)
-├── Data/
-│ (JSON files for loot, enemies, classes)
-├── Editor/
-│ (Custom Unity editor tools)
-└── Scenes/
-(Testing and gameplay scenes)
+├── Created/            # Everything hand-authored for this game
+│   ├── Animation/      # Retargeted character animation
+│   ├── Prefabs/        # Player, dungeon tiles, doors, stairs, pickups
+│   ├── Scenes/         # SampleScene — the playable scene
+│   └── Scripts/
+│       ├── BlueRaja/          # Priority queue library used by the pathfinder
+│       ├── Dungeon Generator/ # Seeded 3D generator (see below)
+│       ├── Network/           # Steam lobbies, transport, ownership helpers
+│       ├── PickUpItems/       # Item scriptable objects and pickup detection
+│       ├── PlayerMovement/    # Camera and locomotion helpers
+│       ├── PlayerStats/       # Ability scores, HP, equipped items
+│       └── RoomGeneration/    # BSP room splitting
+├── Imports/            # Third-party packages — mostly gitignored, see docs/
+Packages/               # UPM manifest
+ProjectSettings/        # Unity project settings
+docs/                   # Design and setup documentation
 ```
 
----
+## Getting started
 
-## Getting Started
-1. Open the project in Unity (recommended version listed in the project settings).  
-2. Load the `Playtest_Scene` in the `Scenes` folder.  
-3. Press **Play** to begin a local test run.  
-4. Modify JSON data in `Assets/Data` to experiment with new loot or class configurations.
+1. Install Unity **6000.3.23f1** via Unity Hub.
+2. Re-import the Asset Store packages listed in
+   [docs/ASSET-STORE-PACKAGES.md](docs/ASSET-STORE-PACKAGES.md) — they are not in
+   this repo (~1.3 GB of binaries). The project will show missing meshes and
+   missing scripts until you do.
+3. Open `Assets/Created/Scenes/SampleScene.unity`.
+4. Press **Play**. Use the Host / Join buttons; joining over Steam needs the
+   host's SteamID64 pasted into the field.
 
----
+Steam features require Steam running and a valid `steam_appid.txt` / app ID
+configured for the Facepunch transport.
 
-## Controls
-Standard first-person or third-person movement. Controls are configurable in the Unity Input settings and support keyboard/mouse or gamepad.
+## Dungeon generation
 
----
+`Generator3D` builds a level in four stages on a `Grid3D<CellType>`:
 
-## Development Notes
-The game systems are designed to be data-driven for flexible iteration. New content can be added without code changes by expanding JSON templates or adding prefabs. Generation logic supports seeded randomization for repeatable testing.
+1. **Place rooms** — random non-intersecting `BoundsInt` volumes.
+2. **Triangulate** — `Delaunay3D` tetrahedralisation over the room centres.
+3. **Select edges** — `Prim` minimum spanning tree, plus a few reintroduced
+   edges so the graph has loops rather than being a pure tree.
+4. **Carve hallways** — `DungeonPathfinder3D`, an A* that prices stairs and
+   hallway reuse so corridors merge instead of running in parallel.
 
----
+Generation is seeded. Call `Generate(int seed)` to build a specific layout; the
+`Seeding` fields on the component control what `Start()` uses. Every client must
+build from the same seed — see the design doc for the planned host handshake.
+
+## Documentation
+
+- [docs/ASSET-STORE-PACKAGES.md](docs/ASSET-STORE-PACKAGES.md) — what to
+  re-import after a fresh clone.
 
 ## License
-This project is released for educational and non-commercial development purposes. See the included license file for full terms.
 
----
-
-## Credits
-Game design and programming by the 3dFungeonGame team.  
-Special thanks to testers and contributors for feedback and support.
-# 3dFungeonGame
-
-## Overview
-3dFungeonGame is a cooperative, DnD-inspired 3D dungeon crawler made in Unity and C#. Players explore procedurally generated dungeons filled with traps, enemies, and mysterious loot. Every run offers new layouts, item combinations, and class synergies, encouraging teamwork and creative problem-solving.
-
-The game focuses on tension, exploration, and emergent storytelling, where every item, encounter, and decision can shape the outcome of a run.
-
----
-
-## Core Features
-- **Procedural 3D Dungeons** – Dynamically generated levels built from modular room chunks for endless replayability.  
-- **Descriptive, Generative Loot** – Items feature mechanical modifiers and flavorful text reflecting their origin and traits.  
-- **Playable Classes** – Multiple unique archetypes with distinct skills, cooldown systems, and cooperative roles.  
-- **Dynamic Encounters** – Rooms include traps, puzzles, and monsters that encourage communication and strategic choices.  
-- **Meta-Progression** – Unlock new class variants, room types, and loot templates through successful runs.  
-- **Moddable Design** – Content is defined through JSON and prefab data for easy expansion.
-
----
-
-## Project Structure
-```
-Assets/
- ├── Scripts/       # Core C# scripts for the game (not all are mine; I am the only one making the game)
- ├── Prefabs/       # Modular room chunks, traps, and interactables
- ├── Data/          # JSON files defining loot, enemies, and classes
- ├── Editor/        # Custom Unity editor tools
- └── Scenes/        # Testing and gameplay scenes
-```
-
----
-
-## Getting Started
-1. Open the project in Unity (recommended version listed in the project settings).  
-2. Load the `Playtest_Scene` in the `Scenes` folder.  
-3. Press **Play** to begin a local test run.  
-4. Modify JSON data in `Assets/Data` to experiment with new loot or class configurations.
-
----
-
-## Controls
-Standard first-person or third-person movement. Controls are configurable in the Unity Input settings and support keyboard/mouse or gamepad.
-
----
-
-## Development Notes
-The game systems are designed to be data-driven for flexible iteration. New content can be added without code changes by expanding JSON templates or adding prefabs. Generation logic supports seeded randomization for repeatable testing.
-
----
-
-## License
-This project is released for educational and non-commercial development purposes. See the included license file for full terms.
-
----
+Released for educational and non-commercial development purposes.

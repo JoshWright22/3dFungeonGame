@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39dced43564e157428b28c58b093bcb5, type: 3}
+  m_Name: Dagger
+  m_EditorClassIdentifier: 
+  nameText: Dagger
+  descriptionText: 
+  fprhPos: {x: 9.5, y: 3.5, z: -2.8}
+  fprhRot: {x: 0.540261, y: -0.30589342, z: 0.51770675, w: -0.58866537}
+  fprhSca: {x: 100, y: 100, z: 100}
+  fplhPos: {x: -11.6, y: -2, z: 3.2}
+  fplhRot: {x: -0.55209965, y: 0.5965036, z: 0.34915048, w: -0.4663296}
+  fplhSca: {x: 100, y: 100, z: 100}
+  tprhPos: {x: 0, y: 0, z: 0}
+  tprhRot: {x: 0, y: 0, z: 0, w: 0}
+  tprhSca: {x: 0, y: 0, z: 0}
+  tplhPos: {x: 0, y: 0, z: 0}
+  tplhRot: {x: 0, y: 0, z: 0, w: 0}
+  tplhSca: {x: 0, y: 0, z: 0}
+  size: 0
+  animationClass: 2
+  prefab: {fileID: 2604864358435973643, guid: bdf388b305f172a4f99dc8ab9f08e69b, type: 3}

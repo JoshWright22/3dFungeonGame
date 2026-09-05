@@ -1,0 +1,28 @@
+# Normalize line endings; Unity writes CRLF on Windows.
+* text=auto
+
+# Unity YAML - keep as text so diffs are readable, and use Unity's smart merge.
+*.unity        text merge=unityyamlmerge eol=lf
+*.prefab       text merge=unityyamlmerge eol=lf
+*.asset        text merge=unityyamlmerge eol=lf
+*.mat          text merge=unityyamlmerge eol=lf
+*.anim         text merge=unityyamlmerge eol=lf
+*.controller   text merge=unityyamlmerge eol=lf
+*.meta         text eol=lf
+*.cs           text diff=csharp
+
+# Binary art and audio - never diff or merge these.
+*.fbx  binary
+*.obj  binary
+*.blend binary
+*.png  binary
+*.jpg  binary
+*.tga  binary
+*.tif  binary
+*.psd  binary
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.ttf  binary
+*.otf  binary
+*.dll  binary
