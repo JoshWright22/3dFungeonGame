@@ -2897,6 +2897,7 @@ MonoBehaviour:
   - {fileID: 105062, guid: 166d0f22f17c2f3449265f51f299640c, type: 3}
   - {fileID: 116744, guid: 5afc051ea82884847b27233ef41ff811, type: 3}
   - {fileID: 164216, guid: c39c4cd0967de674eb0b5c00da3fdccd, type: 3}
+  makeDoorwaysPassable: 1
   torchPrefabs:
   - {fileID: 0}
   - {fileID: 117110, guid: 58f22659dd1426f4a8410923cf2db4b6, type: 3}

@@ -77,6 +77,10 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     GameObject[] doorPrefabs;
 
+    [Tooltip("Strip colliders from spawned doorways. Some Synty frames carry a collider spanning the opening, which seals the doorway the generator just carved.")]
+    [SerializeField]
+    bool makeDoorwaysPassable = true;
+
     [Header("Torches")]
     [Tooltip("Floor-standing light fixtures - braziers, lanterns. Placed against walls.")]
     [SerializeField]
@@ -860,6 +864,11 @@ public class Generator3D : MonoBehaviour
         Vector3 doorPosition = worldCenter + (Vector3)offset * HalfWorldUnit;
 
         // The Y position is already correctly set to DoorFloorOffset (pivot is at floor level).
-        Spawn(DoorPrefab(), doorPosition, rotation);
+        GameObject door = Spawn(DoorPrefab(), doorPosition, rotation);
+        if (door == null || !makeDoorwaysPassable) return;
+
+        // The walls do the blocking; a doorway must be walkable or the room it serves is sealed.
+        foreach (var collider in door.GetComponentsInChildren<Collider>(true))
+            collider.enabled = false;
     }
 }

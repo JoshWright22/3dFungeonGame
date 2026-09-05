@@ -72,6 +72,19 @@ namespace Delver.Movement
         public Vector3 Gravity = new Vector3(0f, -26f, 0f);
         public List<Collider> IgnoredColliders = new List<Collider>();
 
+        [Header("View")]
+        [Tooltip("Where the camera sits. Leave empty and one is created at eye height. Must NOT be the character root - that is at the feet, and pointing a first-person camera at it puts your eyes on the floor.")]
+        public Transform CameraFollowPoint;
+
+        [Tooltip("Eye height above the feet when standing.")]
+        public float StandingEyeHeight = 1.62f;
+
+        [Tooltip("Eye height above the feet when crouched.")]
+        public float CrouchedEyeHeight = 0.95f;
+
+        [Tooltip("How quickly the view drops and rises when crouching.")]
+        public float EyeHeightSharpness = 12f;
+
         [Header("Hooks")]
         public Animator ThirdPersonAnimator;
         public Animator FirstPersonAnimator;
@@ -114,7 +127,35 @@ namespace Delver.Movement
             _stats = GetComponent<PlayerStats>();
             if (_stats == null) _stats = GetComponentInParent<PlayerStats>();
 
+            EnsureCameraFollowPoint();
             ApplyCapsule(StandingHeight);
+        }
+
+        /// <summary>
+        /// Guarantees a follow point at eye height. Without this the camera ends up on whatever
+        /// transform it was handed - and the character root is at the feet.
+        /// </summary>
+        private void EnsureCameraFollowPoint()
+        {
+            if (CameraFollowPoint == null)
+            {
+                var go = new GameObject("~EyePoint");
+                go.transform.SetParent(transform, false);
+                CameraFollowPoint = go.transform;
+            }
+
+            CameraFollowPoint.localPosition = new Vector3(0f, StandingEyeHeight, 0f);
+        }
+
+        private void UpdateEyeHeight(float deltaTime)
+        {
+            if (CameraFollowPoint == null) return;
+
+            float target = IsCrouching ? CrouchedEyeHeight : StandingEyeHeight;
+            Vector3 local = CameraFollowPoint.localPosition;
+
+            local.y = Mathf.Lerp(local.y, target, 1f - Mathf.Exp(-EyeHeightSharpness * deltaTime));
+            CameraFollowPoint.localPosition = local;
         }
 
         /// <summary>Feeds a frame of player intent. Called from the owner's input component only.</summary>
@@ -303,6 +344,7 @@ namespace Delver.Movement
                 _timeSinceGrounded += deltaTime;
             }
 
+            UpdateEyeHeight(deltaTime);
             DriveAnimators();
         }
 

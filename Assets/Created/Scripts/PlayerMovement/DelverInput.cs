@@ -51,7 +51,11 @@ namespace Delver.Movement
 
             if (CharacterCamera != null && Character != null)
             {
-                CharacterCamera.SetFollowTransform(Character.transform);
+                // The follow point, never the character root: the root is at the feet, which is
+                // exactly how the first-person camera ended up at floor level.
+                CharacterCamera.SetFollowTransform(Character.CameraFollowPoint != null
+                    ? Character.CameraFollowPoint
+                    : Character.transform);
 
                 // The camera must not collide with the character it is attached to.
                 CharacterCamera.IgnoredColliders.Clear();
