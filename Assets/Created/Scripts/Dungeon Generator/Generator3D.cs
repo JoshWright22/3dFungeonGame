@@ -214,6 +214,17 @@ public class Generator3D : MonoBehaviour
     readonly HashSet<Vector3Int> stairUnderFloors = new HashSet<Vector3Int>();
 
     /// <summary>
+    /// Direction of travel for each staircase cell.
+    ///
+    /// A stairwell is a tube: walls down its two sides, open at both ends. Nothing along the axis
+    /// of travel is ever walled - not the far end of the wedge, not an upper cell whose neighbour
+    /// happens to be rock. Walls there end up hanging over the ramp or standing across it,
+    /// because a stair cell's floor line is half a storey away from the ramp surface running
+    /// through it.
+    /// </summary>
+    readonly Dictionary<Vector3Int, Vector3Int> stairAxis = new Dictionary<Vector3Int, Vector3Int>();
+
+    /// <summary>
     /// Every cell the party can actually stand in, from the reachability pass. Kept so the wall
     /// pass can seal anything outside it: if you cannot get somewhere, you should not be able to
     /// see or step into it either.
@@ -287,6 +298,7 @@ public class Generator3D : MonoBehaviour
         stairMouths.Clear();
         stairFlanks.Clear();
         stairUnderFloors.Clear();
+        stairAxis.Clear();
         reachableCells.Clear();
         doorways.Clear();
         entryRoom = null;
@@ -585,10 +597,9 @@ public class Generator3D : MonoBehaviour
                 ? run.Prev + h * 2
                 : run.Prev + run.Vertical + h;
 
-            // Only the OUTWARD face. The face back toward the lower ramp is the one the climb
-            // passes through - sealing it puts a wall straight across the middle of the stairs.
-            if (deadEnd != lowerRamp)
-                stairFlanks.Add((deadEnd, h));
+            // Every cell of the run remembers which way the stairs travel, so the wall pass can
+            // leave that axis alone entirely.
+            foreach (var c in quad) stairAxis[c] = h;
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
@@ -728,11 +739,19 @@ public class Generator3D : MonoBehaviour
                 bool inBounds = grid.InBounds(neighbour);
                 CellType beyond = inBounds ? grid[neighbour] : CellType.None;
 
-                // Leave the staircase mouths open, but only those - a ramp running alongside a
-                // corridor is not a way through, and skipping its wall leaves a hole to fall down.
-                // A sealed dead end beats the exemption: it is not a route.
-                bool sealed_ = stairFlanks.Contains((cell, dir));
-                if (!sealed_ && stairMouths.Contains((cell, dir))) continue;
+                // A stairwell is walled down its sides and open along its axis. Walls placed on
+                // the travel axis sit half a storey off the ramp surface passing through the
+                // cell, so they either block the climb or hang over it.
+                if (here == CellType.Stairs
+                    && stairAxis.TryGetValue(cell, out Vector3Int axis)
+                    && (dir == axis || dir == -axis))
+                {
+                    continue;
+                }
+
+                // Elsewhere, leave the staircase mouths open - but only those. A ramp running
+                // alongside a corridor is not a way through, and skipping its wall leaves a hole.
+                if (stairMouths.Contains((cell, dir))) continue;
 
                 // Anything outside the reachable set is sealed, whatever the grid says it is.
                 // A space you cannot get to should not be visible from one you can.
@@ -763,7 +782,7 @@ public class Generator3D : MonoBehaviour
                 // A staircase cell's ramp descends half a storey below that cell's floor line, so
                 // a wall based at the floor line leaves the lower half of the ramp open to the
                 // drop beside it. A second course underneath closes it.
-                if (here == CellType.Stairs)
+                if (here == CellType.Stairs && flank)
                 {
                     Vector3Int below = cell + Vector3Int.down;
                     bool solidBelow = !grid.InBounds(below) || !IsWalkable(grid[below]);
