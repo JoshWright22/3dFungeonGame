@@ -942,11 +942,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.CarriedTorch
   flameColor: {r: 1, g: 0.72, b: 0.42, a: 1}
-  baseIntensity: 3.2
-  range: 16
+  baseIntensity: 9
+  range: 20
   flickerDepth: 0.16
   flickerSpeed: 7
   castShadows: 1
+  localOffset: {x: 0.4, y: -0.1, z: 0.75}
   burnSeconds: 0
 --- !u!4 &2143155095363747129 stripped
 Transform:

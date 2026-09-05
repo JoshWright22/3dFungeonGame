@@ -13,7 +13,7 @@ namespace Delver.Game
     public class DungeonAtmosphere : MonoBehaviour
     {
         [Tooltip("Ambient fill. Not quite black - pure zero makes unlit corners read as holes in the world rather than as dark.")]
-        [SerializeField] private Color ambient = new Color(0.020f, 0.022f, 0.028f);
+        [SerializeField] private Color ambient = new Color(0.035f, 0.037f, 0.045f);
 
         [SerializeField] private bool useFog = true;
         [SerializeField] private Color fogColor = new Color(0.015f, 0.016f, 0.020f);

@@ -68,6 +68,29 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     float loopEdgeChance = 0.125f;
 
+    [Header("Variants")]
+    [Tooltip("Floor tile variants. Must be dimensionally equivalent (Synty's SM_Env_Tiles_01..010 are all 5 x 5). One is picked per cell. Falls back to cubePrefab when empty.")]
+    [SerializeField]
+    GameObject[] floorPrefabs;
+
+    [Tooltip("Door variants, all sized to a 5-unit opening. Falls back to doorPrefab when empty.")]
+    [SerializeField]
+    GameObject[] doorPrefabs;
+
+    [Header("Torches")]
+    [Tooltip("Floor-standing light fixtures - braziers, lanterns. Placed against walls.")]
+    [SerializeField]
+    GameObject[] torchPrefabs;
+
+    [Tooltip("Chance that any given wall gets a torch beside it. Keep low; every torch is a real-time light.")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    float torchChancePerWall = 0.06f;
+
+    [Tooltip("Minimum cells between torches, so they do not cluster into a bonfire.")]
+    [SerializeField]
+    int torchMinSpacing = 3;
+
     [Header("Walls")]
     [Tooltip("Wall segments sealing the edge of any walkable cell that borders solid rock. One is picked at random per edge, so give it several variants for texture.")]
     [SerializeField]
@@ -104,6 +127,7 @@ public class Generator3D : MonoBehaviour
     Delaunay3D delaunay;
     HashSet<Prim.Edge> selectedEdges;
     HashSet<Vector3Int> placedHallways = new HashSet<Vector3Int>();
+    readonly List<Vector3Int> placedTorches = new List<Vector3Int>();
 
     // Define the world unit size for one grid cell
     private const float WorldUnitSize = 5f;
@@ -157,6 +181,7 @@ public class Generator3D : MonoBehaviour
         grid = new Grid3D<CellType>(size, Vector3Int.zero);
         rooms = new List<Room>();
         placedHallways.Clear();
+        placedTorches.Clear();
         entryRoom = null;
 
         PlaceRooms();
@@ -233,9 +258,24 @@ public class Generator3D : MonoBehaviour
             bounds.position.y,
             bounds.position.z + (bounds.size.z - 1) * 0.5f);
 
-        // Sit the party on the floor of that cell, not at its volumetric centre.
-        PartySpawnPoint = centreCell * WorldUnitSize
-            + new Vector3(CubeCenterXZOffset, FloorSurfaceOffset + 0.25f, CubeCenterXZOffset);
+        Vector3 predicted = centreCell * WorldUnitSize
+            + new Vector3(CubeCenterXZOffset, FloorSurfaceOffset, CubeCenterXZOffset);
+
+        PartySpawnPoint = predicted + new Vector3(0f, 0.15f, 0f);
+
+        // Then confirm against the geometry that actually got built. Computing a floor height
+        // from prefab bounds is a prediction; a raycast is the ground truth, and it is what
+        // stops the party spawning a few centimetres inside the floor.
+        // The tiles were instantiated moments ago; push their transforms into the physics scene
+        // before asking it anything.
+        Physics.SyncTransforms();
+
+        Vector3 probeFrom = predicted + new Vector3(0f, WorldUnitSize, 0f);
+        if (Physics.Raycast(probeFrom, Vector3.down, out RaycastHit hit, WorldUnitSize * 2f,
+                ~0, QueryTriggerInteraction.Ignore))
+        {
+            PartySpawnPoint = hit.point + new Vector3(0f, 0.15f, 0f);
+        }
     }
 
     /// <summary>Cells a delver can actually stand in.</summary>
@@ -287,6 +327,7 @@ public class Generator3D : MonoBehaviour
                 if (grid.InBounds(neighbour) && grid[neighbour] == CellType.Stairs) continue;
 
                 PlaceWall(cellCentre, dir, wallFloorOffset);
+                TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
             }
 
             if (ceilingPrefab != null)
@@ -323,6 +364,35 @@ public class Generator3D : MonoBehaviour
         Vector3 right = rotation * Vector3.right;
 
         Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
+    }
+
+    /// <summary>
+    /// Occasionally stands a brazier or lantern against a wall. Spaced out deliberately: each one
+    /// is a real-time light, and a dungeon lit end to end defeats the point of carrying a torch.
+    /// </summary>
+    void TryPlaceTorch(Vector3Int cell, Vector3 cellCentre, Vector3Int dir, float floorOffset)
+    {
+        if (torchPrefabs == null || torchPrefabs.Length == 0) return;
+        if (random.NextDouble() >= torchChancePerWall) return;
+
+        for (int i = 0; i < placedTorches.Count; i++)
+        {
+            Vector3Int d = placedTorches[i] - cell;
+            if (Mathf.Abs(d.x) + Mathf.Abs(d.y) * 2 + Mathf.Abs(d.z) < torchMinSpacing) return;
+        }
+
+        GameObject prefab = torchPrefabs[random.Next(torchPrefabs.Length)];
+        if (prefab == null) return;
+
+        // Stand it just inside the wall, facing the room.
+        Vector3 outward = new Vector3(dir.x, 0f, dir.z);
+        Vector3 position = cellCentre + outward * (HalfWorldUnit - 0.9f) + new Vector3(0f, floorOffset, 0f);
+
+        GameObject torch = Spawn(prefab, position, Quaternion.LookRotation(-outward, Vector3.up));
+        if (torch == null) return;
+
+        torch.AddComponent<Delver.Game.TorchLight>();
+        placedTorches.Add(cell);
     }
 
     /// <summary>Distance from a prefab's pivot to the bottom of its geometry.</summary>
@@ -366,8 +436,9 @@ public class Generator3D : MonoBehaviour
         CubeCenterXZOffset = GetHorizontalCenterOffset(cubePrefab);
 
         // A tile is instantiated with its pivot at (gridLine + HalfWorldUnit). Its walkable
-        // surface is wherever the top of its geometry sits relative to that pivot.
-        FloorSurfaceOffset = HalfWorldUnit + GetTopOffset(cubePrefab);
+        // surface is the top of its COLLIDER - the renderer's bounds are a few centimetres
+        // taller, which is exactly how far into the floor the party used to spawn.
+        FloorSurfaceOffset = HalfWorldUnit + GetTopOffset(RepresentativeFloorPrefab());
 
         // Door and Stair Prefabs only need the vertical offset to sit on the floor
         DoorFloorOffset = GetFloorOffset(doorPrefab);
@@ -377,15 +448,60 @@ public class Generator3D : MonoBehaviour
             Debug.Log($"Calculated Offsets: Cube XZ Center={CubeCenterXZOffset}, Door Y={DoorFloorOffset}, Stair Y={StairFloorOffset}");
     }
 
-    /// <summary>Distance from a prefab's pivot up to the top of its geometry.</summary>
+    /// <summary>
+    /// Distance from a prefab's pivot up to the top of the surface a character collides with.
+    /// Prefers the collider over the renderer: the mesh sits slightly proud of the collision
+    /// hull, and placing anything from the mesh bounds leaves it floating.
+    /// </summary>
     float GetTopOffset(GameObject prefab)
     {
         if (prefab == null) return 0f;
+
+        Collider collider = prefab.GetComponentInChildren<Collider>();
+        if (collider != null)
+            return collider.bounds.center.y + collider.bounds.extents.y;
 
         MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
         if (renderer == null) return 0f;
 
         return renderer.bounds.center.y + renderer.bounds.extents.y;
+    }
+
+    /// <summary>
+    /// A stable stand-in for measuring tile geometry. Every variant is the same size, so any of
+    /// them will do - but it must not consume a random draw, because offsets are calculated
+    /// before the run's RNG is seeded.
+    /// </summary>
+    GameObject RepresentativeFloorPrefab()
+    {
+        if (floorPrefabs != null)
+            foreach (var p in floorPrefabs)
+                if (p != null) return p;
+
+        return cubePrefab;
+    }
+
+    /// <summary>A floor tile variant, or the single legacy prefab when no variants are set.</summary>
+    GameObject FloorPrefab()
+    {
+        if (floorPrefabs != null && floorPrefabs.Length > 0)
+        {
+            var pick = floorPrefabs[random.Next(floorPrefabs.Length)];
+            if (pick != null) return pick;
+        }
+
+        return cubePrefab;
+    }
+
+    GameObject DoorPrefab()
+    {
+        if (doorPrefabs != null && doorPrefabs.Length > 0)
+        {
+            var pick = doorPrefabs[random.Next(doorPrefabs.Length)];
+            if (pick != null) return pick;
+        }
+
+        return doorPrefab;
     }
 
     void PlaceRooms()
@@ -658,7 +774,7 @@ public class Generator3D : MonoBehaviour
         // ⭐ Y is reverted to the fixed center of the 5-unit cell (HalfWorldUnit = 2.5).
         Vector3 worldCenter = (Vector3)location * WorldUnitSize + new Vector3(CubeCenterXZOffset, HalfWorldUnit, CubeCenterXZOffset);
 
-        Spawn(cubePrefab, worldCenter, Quaternion.identity);
+        Spawn(FloorPrefab(), worldCenter, Quaternion.identity);
     }
 
     /// <summary>
@@ -744,6 +860,6 @@ public class Generator3D : MonoBehaviour
         Vector3 doorPosition = worldCenter + (Vector3)offset * HalfWorldUnit;
 
         // The Y position is already correctly set to DoorFloorOffset (pivot is at floor level).
-        Spawn(doorPrefab, doorPosition, rotation);
+        Spawn(DoorPrefab(), doorPosition, rotation);
     }
 }

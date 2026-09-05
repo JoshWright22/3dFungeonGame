@@ -14,8 +14,8 @@ namespace Delver.Game
     {
         [Header("Flame")]
         [SerializeField] private Color flameColor = new Color(1f, 0.72f, 0.42f);
-        [SerializeField] private float baseIntensity = 3.2f;
-        [SerializeField] private float range = 16f;
+        [SerializeField] private float baseIntensity = 9f;
+        [SerializeField] private float range = 20f;
 
         [Header("Flicker")]
         [Tooltip("How far intensity strays from the base, as a fraction of it.")]
