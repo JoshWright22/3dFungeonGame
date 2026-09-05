@@ -77,9 +77,9 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     GameObject[] doorPrefabs;
 
-    [Tooltip("Strip colliders from spawned doorways. Some Synty frames carry a collider spanning the opening, which seals the doorway the generator just carved.")]
+    [Tooltip("Strip colliders from spawned doorways. Only needed for door prefabs whose collider is a solid box spanning the opening; the Synty wall-doorframe pieces use MeshColliders and are already walkable.")]
     [SerializeField]
-    bool makeDoorwaysPassable = true;
+    bool makeDoorwaysPassable = false;
 
     [Header("Torches")]
     [Tooltip("Floor-standing light fixtures - braziers, lanterns. Placed against walls.")]
@@ -313,9 +313,6 @@ public class Generator3D : MonoBehaviour
             CellType here = grid[cell];
 
             if (!IsWalkable(here)) continue;
-
-            // Stairs cut through the grid diagonally; walling them off would seal the route.
-            if (here == CellType.Stairs) continue;
 
             Vector3 cellCentre = (Vector3)cell * WorldUnitSize
                 + new Vector3(CubeCenterXZOffset, 0f, CubeCenterXZOffset);
@@ -851,23 +848,30 @@ public class Generator3D : MonoBehaviour
     }
 
     /// <summary>
-    /// Places a door. The location is the hallway grid unit, and the door should be placed
-    /// halfway between the hallway and the room (at the 5-unit grid boundary).
+    /// Places a doorway between a hallway and a room.
+    ///
+    /// These are wall-sized pieces with an opening cut through them, not free-standing frames,
+    /// so they are positioned exactly like a wall: pivot at floor level on one end, pushed half
+    /// a cell along the piece's own right vector to sit centred on the boundary. That is what
+    /// makes a door read as a hole in a wall rather than an outline floating in a gap.
     /// </summary>
-    void PlaceDoor(Vector3Int location, Quaternion rotation, Vector3Int offset)
+    void PlaceDoor(Vector3Int location, Quaternion unusedRotation, Vector3Int offset)
     {
-        // World center of the hallway block (X/Z determined by CubeCenterXZOffset, Y by DoorFloorOffset)
-        Vector3 worldCenter = (Vector3)location * WorldUnitSize + new Vector3(CubeCenterXZOffset, DoorFloorOffset, CubeCenterXZOffset);
+        Vector3 cellCentre = (Vector3)location * WorldUnitSize
+            + new Vector3(CubeCenterXZOffset, 0f, CubeCenterXZOffset);
 
-        // Move the door HalfWorldUnit (2.5) in the direction of the offset to place it at the boundary.
-        // We use HalfWorldUnit (2.5) because the boundary is fixed at half the 5-unit cell size.
-        Vector3 doorPosition = worldCenter + (Vector3)offset * HalfWorldUnit;
+        Vector3 outward = new Vector3(offset.x, 0f, offset.z);
+        Vector3 boundary = cellCentre + outward * HalfWorldUnit
+            + new Vector3(0f, FloorSurfaceOffset + wallYNudge, 0f);
 
-        // The Y position is already correctly set to DoorFloorOffset (pivot is at floor level).
-        GameObject door = Spawn(DoorPrefab(), doorPosition, rotation);
+        Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
+        Vector3 right = rotation * Vector3.right;
+
+        GameObject door = Spawn(DoorPrefab(), boundary + right * HalfWorldUnit, rotation);
         if (door == null || !makeDoorwaysPassable) return;
 
-        // The walls do the blocking; a doorway must be walkable or the room it serves is sealed.
+        // Only needed for prefabs whose collider spans the opening. The Synty wall-doorframe
+        // pieces use MeshColliders, which already leave the doorway walkable.
         foreach (var collider in door.GetComponentsInChildren<Collider>(true))
             collider.enabled = false;
     }
