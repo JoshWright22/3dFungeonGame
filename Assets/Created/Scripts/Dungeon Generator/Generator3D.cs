@@ -203,6 +203,15 @@ public class Generator3D : MonoBehaviour
     /// ordinary same-level wall rule cannot see. These sides are always walled.
     /// </summary>
     readonly HashSet<(Vector3Int cell, Vector3Int dir)> stairFlanks = new HashSet<(Vector3Int, Vector3Int)>();
+
+    /// <summary>
+    /// Stair cells that still need a floor laid under them.
+    ///
+    /// A run marks four cells but only two carry ramp geometry. The other lower-level cell is the
+    /// space underneath the upper ramp - and because Stairs cells are skipped when laying floors,
+    /// it was an open hole you could walk into from the level below.
+    /// </summary>
+    readonly HashSet<Vector3Int> stairUnderFloors = new HashSet<Vector3Int>();
     readonly List<(Vector3Int cell, Vector3Int dir)> doorways = new List<(Vector3Int, Vector3Int)>();
 
     // Define the world unit size for one grid cell
@@ -270,6 +279,7 @@ public class Generator3D : MonoBehaviour
         stairRuns.Clear();
         stairMouths.Clear();
         stairFlanks.Clear();
+        stairUnderFloors.Clear();
         doorways.Clear();
         entryRoom = null;
 
@@ -491,8 +501,13 @@ public class Generator3D : MonoBehaviour
             var cell = new Vector3Int(x, y, z);
             CellType type = grid[cell];
 
-            // Stairs carry their own ramp geometry; Room is headroom above a floor.
-            if (type != CellType.BottomFloorRoom && type != CellType.Hallway) continue;
+            // Room is headroom above a floor, so it never gets one. Stairs normally carry their
+            // own ramp instead of a tile - except the cells under a run, which need ground.
+            bool wantsFloor = type == CellType.BottomFloorRoom
+                || type == CellType.Hallway
+                || (type == CellType.Stairs && stairUnderFloors.Contains(cell));
+
+            if (!wantsFloor) continue;
 
             InstantiateCellObject(cell);
         }
@@ -521,6 +536,19 @@ public class Generator3D : MonoBehaviour
                 stairFlanks.Add((cell, perpA));
                 stairFlanks.Add((cell, perpB));
             }
+
+            // Floor the two cells on the run's lower level, so the space beneath the upper ramp
+            // has ground under it. The upper-level cells are left alone - a tile there would sit
+            // across the top of the ramp and block it.
+            Vector3Int[] quad =
+            {
+                run.Prev + h, run.Prev + h * 2,
+                run.Prev + run.Vertical + h, run.Prev + run.Vertical + h * 2,
+            };
+
+            int lowestY = int.MaxValue;
+            foreach (var c in quad) lowestY = Mathf.Min(lowestY, c.y);
+            foreach (var c in quad) if (c.y == lowestY) stairUnderFloors.Add(c);
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
