@@ -1,0 +1,1068 @@
+<title>Party Wipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#E9ECE8;
+  --surface:#FAFBF9;
+  --surface-sunk:#DFE3DD;
+  --ink:#151916;
+  --ink-soft:#3B443E;
+  --muted:#616C64;
+  --rule:#C6CDC5;
+  --rule-soft:#D8DED6;
+  --torch:#A94D14;
+  --torch-soft:#C97A3E;
+  --arcane:#356376;
+  --ship:#3D6742;
+  --risk:#836215;
+  --broken:#96322F;
+  --chip-ship:#DCE7DB;
+  --chip-risk:#EFE5C8;
+  --chip-broken:#F0DAD7;
+  --chip-none:#DFE3DD;
+
+  --f-display:"Oswald","Haettenschweiler","Arial Narrow",sans-serif;
+  --f-body:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --f-mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+
+  --measure:68ch;
+  --step:clamp(1.6rem,3vw,2.4rem);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1211;
+    --surface:#171B19;
+    --surface-sunk:#101413;
+    --ink:#E3E8E3;
+    --ink-soft:#BCC4BD;
+    --muted:#8B968D;
+    --rule:#2B322D;
+    --rule-soft:#232925;
+    --torch:#E08A46;
+    --torch-soft:#B76F35;
+    --arcane:#78AEC3;
+    --ship:#71A876;
+    --risk:#C7A346;
+    --broken:#DC7A74;
+    --chip-ship:#1B2A1D;
+    --chip-risk:#2B2617;
+    --chip-broken:#2E1B1A;
+    --chip-none:#1E2320;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1211;
+  --surface:#171B19;
+  --surface-sunk:#101413;
+  --ink:#E3E8E3;
+  --ink-soft:#BCC4BD;
+  --muted:#8B968D;
+  --rule:#2B322D;
+  --rule-soft:#232925;
+  --torch:#E08A46;
+  --torch-soft:#B76F35;
+  --arcane:#78AEC3;
+  --ship:#71A876;
+  --risk:#C7A346;
+  --broken:#DC7A74;
+  --chip-ship:#1B2A1D;
+  --chip-risk:#2B2617;
+  --chip-broken:#2E1B1A;
+  --chip-none:#1E2320;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:17px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--torch);text-underline-offset:2px}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--torch);outline-offset:3px;border-radius:2px}
+
+/* ---------- shell ---------- */
+.shell{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 clamp(1.1rem,4vw,2.75rem) 5rem;
+}
+@media (min-width:1080px){
+  .shell{grid-template-columns:14.5rem minmax(0,1fr);gap:3.25rem}
+}
+
+/* ---------- masthead ---------- */
+.masthead{
+  grid-column:1/-1;
+  border-bottom:2px solid var(--ink);
+  padding:clamp(2.25rem,6vw,3.75rem) 0 1.4rem;
+  margin-bottom:2.5rem;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-end;
+  gap:1.5rem 2.5rem;
+}
+.masthead-main{flex:1 1 22rem;min-width:0}
+.eyebrow{
+  font-family:var(--f-mono);
+  font-size:.68rem;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 .85rem;
+}
+h1{
+  font-family:var(--f-display);
+  font-weight:600;
+  font-size:clamp(3rem,9.5vw,5.6rem);
+  line-height:.92;
+  letter-spacing:-.005em;
+  text-transform:uppercase;
+  margin:0;
+  text-wrap:balance;
+}
+h1 .thin{font-weight:400;color:var(--torch)}
+.deck{
+  font-size:1.07rem;
+  color:var(--ink-soft);
+  max-width:44ch;
+  margin:1.05rem 0 0;
+}
+.colophon{
+  flex:0 1 17rem;
+  font-family:var(--f-mono);
+  font-size:.7rem;
+  line-height:1.85;
+  color:var(--muted);
+  border-left:2px solid var(--torch);
+  padding-left:1rem;
+}
+.colophon b{color:var(--ink-soft);font-weight:500}
+
+/* ---------- contents rail ---------- */
+.rail{display:none}
+@media (min-width:1080px){
+  .rail{
+    display:block;
+    position:sticky;
+    top:2rem;
+    align-self:start;
+    max-height:calc(100vh - 4rem);
+    overflow-y:auto;
+    font-family:var(--f-mono);
+    font-size:.72rem;
+    line-height:1.5;
+  }
+  .rail p{
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 .9rem;
+    padding-bottom:.55rem;
+    border-bottom:1px solid var(--rule);
+  }
+  .rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem}
+  .rail a{
+    color:var(--ink-soft);
+    text-decoration:none;
+    display:grid;
+    grid-template-columns:1.7rem 1fr;
+    gap:.15rem;
+  }
+  .rail a:hover{color:var(--torch)}
+  .rail .n{color:var(--muted)}
+}
+
+/* ---------- sections ---------- */
+main{min-width:0}
+section{
+  padding-top:var(--step);
+  margin-bottom:var(--step);
+  border-top:1px solid var(--rule);
+}
+section:first-of-type{border-top:none;padding-top:0}
+.sec-head{
+  display:flex;
+  align-items:baseline;
+  gap:.85rem;
+  margin:0 0 .35rem;
+}
+.sec-num{
+  font-family:var(--f-mono);
+  font-size:.78rem;
+  font-weight:700;
+  color:var(--torch);
+  letter-spacing:.06em;
+  flex:0 0 auto;
+  padding-top:.15rem;
+}
+h2{
+  font-family:var(--f-display);
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+  font-size:clamp(1.5rem,3.4vw,2rem);
+  line-height:1.1;
+  margin:0;
+  text-wrap:balance;
+}
+h3{
+  font-family:var(--f-display);
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-size:1rem;
+  margin:2rem 0 .5rem;
+  color:var(--ink);
+}
+p,ul,ol{max-width:var(--measure)}
+p{margin:0 0 1.05em}
+ul,ol{margin:0 0 1.15em;padding-left:1.25rem}
+li{margin-bottom:.45em}
+li::marker{color:var(--torch-soft)}
+strong{font-weight:600}
+em.term{font-style:normal;font-family:var(--f-mono);font-size:.85em;color:var(--arcane)}
+code{
+  font-family:var(--f-mono);
+  font-size:.83em;
+  background:var(--surface-sunk);
+  padding:.1em .38em;
+  border-radius:2px;
+}
+
+/* ---------- read-aloud box ---------- */
+.boxed{
+  background:var(--surface);
+  border-left:4px solid var(--torch);
+  border-top:1px solid var(--rule-soft);
+  border-right:1px solid var(--rule-soft);
+  border-bottom:1px solid var(--rule-soft);
+  padding:1.35rem 1.6rem;
+  margin:0 0 1.6rem;
+  max-width:var(--measure);
+}
+.boxed p{font-style:italic;font-size:1.06rem;color:var(--ink-soft);margin-bottom:.8em}
+.boxed p:last-child{margin-bottom:0}
+
+/* ---------- stat block ---------- */
+.statblock{
+  background:var(--surface);
+  border-top:3px solid var(--torch);
+  border-bottom:1px solid var(--rule);
+  padding:1.15rem 1.4rem 1.25rem;
+  margin:1.5rem 0;
+  max-width:var(--measure);
+}
+.statblock h4{
+  font-family:var(--f-display);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-weight:600;
+  font-size:1.05rem;
+  margin:0 0 .15rem;
+}
+.statblock .sub{
+  font-family:var(--f-body);
+  font-style:italic;
+  font-size:.88rem;
+  color:var(--muted);
+  margin:0 0 .9rem;
+}
+.statblock hr{border:none;border-top:1px solid var(--torch-soft);margin:.9rem 0}
+.rows{display:grid;gap:.42rem;font-family:var(--f-mono);font-size:.79rem}
+.row{
+  display:grid;
+  grid-template-columns:minmax(6.5rem,auto) 1fr;
+  gap:.35rem 1rem;
+  align-items:baseline;
+}
+.row dt{color:var(--muted);letter-spacing:.05em;text-transform:uppercase;font-size:.7rem}
+.row dd{margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+.abilities{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(5.5rem,1fr));
+  gap:.75rem;
+  margin:.9rem 0 0;
+  font-family:var(--f-mono);
+}
+.ability{text-align:center;padding:.55rem .3rem;background:var(--surface-sunk)}
+.ability b{display:block;font-size:.66rem;letter-spacing:.14em;color:var(--muted);font-weight:500}
+.ability span{display:block;font-size:.95rem;margin-top:.2rem;color:var(--ink)}
+
+/* ---------- phase list ---------- */
+.phases{list-style:none;padding:0;margin:1.4rem 0;max-width:var(--measure);counter-reset:ph}
+.phases li{
+  counter-increment:ph;
+  display:grid;
+  grid-template-columns:2.4rem 1fr;
+  gap:0 1.1rem;
+  padding:.95rem 0;
+  border-top:1px solid var(--rule-soft);
+  margin:0;
+}
+.phases li:last-child{border-bottom:1px solid var(--rule-soft)}
+.phases li::before{
+  content:counter(ph,decimal-leading-zero);
+  font-family:var(--f-mono);
+  font-size:.8rem;
+  font-weight:700;
+  color:var(--torch);
+  padding-top:.15rem;
+}
+.phases h4{
+  font-family:var(--f-display);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-size:.95rem;
+  font-weight:500;
+  margin:0 0 .2rem;
+  display:flex;
+  gap:.7rem;
+  align-items:baseline;
+  flex-wrap:wrap;
+}
+.phases .dur{
+  font-family:var(--f-mono);
+  font-size:.66rem;
+  letter-spacing:.1em;
+  color:var(--muted);
+  text-transform:none;
+}
+.phases p{margin:0;font-size:.95rem;color:var(--ink-soft);max-width:56ch}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:1.35rem 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;min-width:34rem;font-size:.88rem}
+th{
+  font-family:var(--f-mono);
+  font-size:.65rem;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--muted);
+  text-align:left;
+  font-weight:500;
+  padding:.6rem .75rem .55rem 0;
+  border-bottom:1px solid var(--rule);
+  white-space:nowrap;
+}
+td{padding:.7rem .75rem .7rem 0;border-bottom:1px solid var(--rule-soft);vertical-align:top;color:var(--ink-soft)}
+td:first-child{color:var(--ink)}
+tr:last-child td{border-bottom:none}
+td .mono{font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums}
+
+.chip{
+  display:inline-block;
+  font-family:var(--f-mono);
+  font-size:.62rem;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  padding:.22em .55em;
+  white-space:nowrap;
+  border-radius:2px;
+}
+.chip.ship{background:var(--chip-ship);color:var(--ship)}
+.chip.risk{background:var(--chip-risk);color:var(--risk)}
+.chip.broken{background:var(--chip-broken);color:var(--broken)}
+.chip.none{background:var(--chip-none);color:var(--muted)}
+
+/* ---------- chart ---------- */
+figure{margin:1.6rem 0;max-width:var(--measure)}
+.chartwrap{overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--rule)}
+figure svg{display:block;min-width:30rem;width:100%;height:auto}
+figcaption{
+  font-family:var(--f-mono);
+  font-size:.68rem;
+  line-height:1.7;
+  color:var(--muted);
+  margin-top:.7rem;
+}
+.legend{display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;margin-top:.55rem;font-family:var(--f-mono);font-size:.68rem}
+.legend span{display:flex;align-items:center;gap:.4rem;color:var(--ink-soft)}
+.swatch{width:1.1rem;height:0;border-top-width:3px;border-top-style:solid;display:inline-block}
+
+/* ---------- fix log ---------- */
+.log{max-width:var(--measure);margin:1.3rem 0 0}
+.log details{border-top:1px solid var(--rule-soft);padding:.15rem 0}
+.log details:last-of-type{border-bottom:1px solid var(--rule-soft)}
+.log summary{
+  cursor:pointer;
+  padding:.72rem 0;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:.5rem 1rem;
+  align-items:baseline;
+  list-style:none;
+}
+.log summary::-webkit-details-marker{display:none}
+.log summary::after{content:"+";font-family:var(--f-mono);color:var(--torch);font-size:.95rem}
+.log details[open] summary::after{content:"\2013"}
+.log .what{font-weight:600;font-size:.95rem}
+.log .where{
+  font-family:var(--f-mono);
+  font-size:.68rem;
+  color:var(--muted);
+  grid-column:1/-1;
+  margin-top:-.15rem;
+}
+.log .body{padding:0 0 1rem;font-size:.94rem;color:var(--ink-soft)}
+.log .body p{margin:0 0 .7em;max-width:58ch}
+.log .body p:last-child{margin:0}
+
+/* ---------- questions ---------- */
+.qs{list-style:none;padding:0;margin:1.3rem 0;max-width:var(--measure);display:grid;gap:1.1rem}
+.qs li{margin:0;padding-left:1.15rem;border-left:2px solid var(--arcane)}
+.qs b{display:block;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.04em;font-weight:500;font-size:.95rem;margin-bottom:.15rem}
+.qs span{font-size:.94rem;color:var(--ink-soft)}
+
+footer{
+  grid-column:1/-1;
+  margin-top:2.5rem;
+  padding-top:1.2rem;
+  border-top:2px solid var(--ink);
+  font-family:var(--f-mono);
+  font-size:.68rem;
+  letter-spacing:.06em;
+  color:var(--muted);
+  display:flex;
+  flex-wrap:wrap;
+  gap:.4rem 2rem;
+}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <div class="masthead-main">
+      <p class="eyebrow">Game design document · draft 1 · 4 Sep 2026</p>
+      <h1>Party<br><span class="thin">Wipe</span></h1>
+      <p class="deck">A co-op dungeon delve where the dice are public, the voice chat is
+      positional, and the most dangerous thing in the dungeon is the friend holding the torch.</p>
+    </div>
+    <div class="colophon">
+      <b>REPO</b> JoshWright22/3dFungeonGame<br>
+      <b>ENGINE</b> Unity 6000.3.23f1 LTS<br>
+      <b>PIPELINE</b> URP 17.3.0<br>
+      <b>NETCODE</b> NGO 2.1.1 · Facepunch/Steam<br>
+      <b>PARTY</b> 4 players<br>
+      <b>TITLE</b> working — repo name stands
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Contents">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#s1"><span class="n">1</span><span>The pitch</span></a></li>
+      <li><a href="#s2"><span class="n">2</span><span>Design pillars</span></a></li>
+      <li><a href="#s3"><span class="n">3</span><span>The expedition loop</span></a></li>
+      <li><a href="#s4"><span class="n">4</span><span>Characters</span></a></li>
+      <li><a href="#s5"><span class="n">5</span><span>Hands &amp; items</span></a></li>
+      <li><a href="#s6"><span class="n">6</span><span>The dungeon</span></a></li>
+      <li><a href="#s7"><span class="n">7</span><span>Multiplayer</span></a></li>
+      <li><a href="#s8"><span class="n">8</span><span>Proximity voice</span></a></li>
+      <li><a href="#s9"><span class="n">9</span><span>Light &amp; fear</span></a></li>
+      <li><a href="#s10"><span class="n">10</span><span>Build status</span></a></li>
+      <li><a href="#s11"><span class="n">11</span><span>Fix log</span></a></li>
+      <li><a href="#s12"><span class="n">12</span><span>Roadmap</span></a></li>
+      <li><a href="#s13"><span class="n">13</span><span>Open questions</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section id="s1">
+      <div class="sec-head"><span class="sec-num">1</span><h2>The pitch</h2></div>
+      <div class="boxed">
+        <p>The stairs end in a room the map does not have. Someone's torch is already
+        down to a stub. Behind you, at the edge of hearing, your cleric is explaining
+        to nobody in particular that he rolled a seven for Strength and cannot open
+        the door.</p>
+        <p>You have eleven minutes before the way out closes.</p>
+      </div>
+      <p><strong>Party Wipe</strong> is a four-player cooperative dungeon crawl that
+      takes the shape of a tabletop delve — rolled stats, a dungeon master's grid, loot
+      you have to physically carry out — and runs it at the pressure and tempo of a
+      shift-based horror co-op. The comedy and the horror come from the same source:
+      you can hear each other, positionally, all the time, and nobody is good at their job.</p>
+
+      <h3>What it is</h3>
+      <ul>
+        <li>Short runs — one dungeon, one extraction window, roughly twenty minutes.</li>
+        <li>Character sheets rolled fresh each run. No builds, no loadouts, no meta.</li>
+        <li>Physical inventory: two hands, and what's in them is what you have.</li>
+        <li>Voice as a mechanic. Distance, walls and torchlight all change what you can hear.</li>
+      </ul>
+
+      <h3>What it isn't</h3>
+      <ul>
+        <li>Not a combat game first. Fights are a failure state you sometimes survive.</li>
+        <li>Not a progression treadmill. Meta-unlocks widen the content pool, never the power curve.</li>
+        <li>Not a tactics sim. There is no turn order and no grid the player can see.</li>
+      </ul>
+    </section>
+
+    <section id="s2">
+      <div class="sec-head"><span class="sec-num">2</span><h2>Design pillars</h2></div>
+      <p>Four rules. When a feature can't be justified against one of them, it doesn't ship.</p>
+
+      <h3>I. The dice are public</h3>
+      <p>Every roll that matters is announced in the world — a die clatter cue at the
+      character's position, audible to anyone in earshot. Failure is never private, which
+      means failure is always social. This is the pillar the whole D&amp;D framing exists to serve.</p>
+
+      <h3>II. Voice is the interface</h3>
+      <p>There is no ping system, no map marker, no shared waypoint. Coordination happens
+      by shouting down a corridor and hoping. Every system that could be solved with UI
+      should be solved with the fact that people can talk to each other and don't.</p>
+
+      <h3>III. Competence is unevenly distributed</h3>
+      <p><span class="mono">3d6</span> in order, no rerolls, no point buy. Someone in the
+      party is going to be genuinely bad, and the run has to route around them. That
+      person is different every time.</p>
+
+      <h3>IV. The dungeon does not scale to you</h3>
+      <p>One seed builds one layout with one distribution of threats, before it knows who
+      is coming. It doesn't rubber-band, it doesn't tune to party strength, and it will
+      happily generate a run the party cannot win.</p>
+    </section>
+
+    <section id="s3">
+      <div class="sec-head"><span class="sec-num">3</span><h2>The expedition loop</h2></div>
+      <p>One run, start to finish. Phases are a real sequence — each hands specific state
+      to the next — and the durations are the tuning targets, not measurements.</p>
+
+      <ol class="phases">
+        <li>
+          <h4>Muster <span class="dur">60–90 s · lobby</span></h4>
+          <p>Steam lobby fills to four. The host's seed is fixed and broadcast. Every player's
+          sheet is rolled server-side and shown to the whole party at once — you see how bad
+          everyone else got it before you see the dungeon.</p>
+        </li>
+        <li>
+          <h4>Descent <span class="dur">30 s · fixed</span></h4>
+          <p>The one scripted beat in the run. Party rides down together, torches lit, no
+          threats. Exists purely so everyone is in voice range once before they scatter.</p>
+        </li>
+        <li>
+          <h4>Delve <span class="dur">8–12 min · open</span></h4>
+          <p>Explore, loot, avoid. The party splits almost immediately because two hands
+          isn't enough carry capacity, and splitting is what makes proximity voice bite.</p>
+        </li>
+        <li>
+          <h4>The turn <span class="dur">triggered</span></h4>
+          <p>A threshold event — quota met, a specific room opened, a timer — flips the
+          dungeon's behaviour. Doors that were open close. Something starts moving toward
+          the loudest player. This is the moment the run stops being a looting game.</p>
+        </li>
+        <li>
+          <h4>Extraction <span class="dur">2–4 min · timed</span></h4>
+          <p>Back to the entry stair with whatever is in your hands. Carry weight fights
+          you. Dropping loot to run is always the correct call and nobody ever makes it.</p>
+        </li>
+        <li>
+          <h4>Tally <span class="dur">45 s · lobby</span></h4>
+          <p>Value extracted against quota. Survivors keep nothing but the story. Meta
+          currency unlocks new dungeon furniture and item templates for the pool — never stats.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section id="s4">
+      <div class="sec-head"><span class="sec-num">4</span><h2>Characters</h2></div>
+      <p>The character system is deliberately thin, and this is the whole of it. Rolled at
+      spawn, on the server, never edited by the player.</p>
+
+      <div class="statblock">
+        <h4>Delver</h4>
+        <p class="sub">Player character, rolled fresh each expedition</p>
+        <hr>
+        <div class="abilities">
+          <div class="ability"><b>STR</b><span>3d6</span></div>
+          <div class="ability"><b>DEX</b><span>3d6</span></div>
+          <div class="ability"><b>INT</b><span>3d6</span></div>
+          <div class="ability"><b>HP</b><span>best+1d4</span></div>
+        </div>
+        <hr>
+        <dl class="rows">
+          <div class="row"><dt>Ability range</dt><dd>3–18 · mean 10.5 · 1 in 216 for an 18</dd></div>
+          <div class="row"><dt>Hit points</dt><dd>max(STR, DEX) + 1d4 · range 4–22</dd></div>
+          <div class="row"><dt>Authority</dt><dd>Server rolls once on spawn, replicated read-only</dd></div>
+          <div class="row"><dt>Rerolls</dt><dd>None. Ever.</dd></div>
+          <div class="row"><dt>Classes</dt><dd>Emergent — set by what you pick up (§5)</dd></div>
+        </dl>
+      </div>
+
+      <h3>What abilities actually do</h3>
+      <p>Not yet designed, and this is the most important open decision in the document.
+      The scores exist and replicate correctly; nothing consumes them. The proposal:</p>
+      <ul>
+        <li><strong>STR</strong> — carry capacity before movement penalty; forcing stuck doors and lids.</li>
+        <li><strong>DEX</strong> — movement speed ceiling, fall damage threshold, and whether a trap gets you.</li>
+        <li><strong>INT</strong> — how much an item's description tells you. A low-INT delver reads
+        <em class="term">"a dagger"</em> where a high-INT one reads <em class="term">"a dagger, still warm"</em>.</li>
+      </ul>
+      <p>INT-as-information is the pick worth taking the risk on: it makes a bad stat funny
+      and useful to the party rather than just a debuff, and it feeds directly into the
+      voice pillar — the party's smartest member has to <em>describe</em> things out loud.</p>
+    </section>
+
+    <section id="s5">
+      <div class="sec-head"><span class="sec-num">5</span><h2>Hands &amp; items</h2></div>
+      <p>There is no inventory screen. You have a left hand and a right hand. An item is
+      one-handed or two-handed, and a two-handed item takes both.</p>
+      <p>Items are <code>ObjectModelSO</code> scriptable objects carrying a display name,
+      a description string, a prefab, a size, and — the interesting field — an
+      <strong>animation class</strong>. The animation class is the closest thing the game
+      has to a character class, and it is decided by what you picked up:</p>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>Animation class</th><th>Reads as</th><th>Hands</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Carry</td><td>Not a fighter. Hauling loot.</td><td>1 or 2</td></tr>
+            <tr><td class="mono">SwordAndShield</td><td>The one who goes first</td><td>2 × 1H</td></tr>
+            <tr><td class="mono">TwoHandWeapon</td><td>Committed. Cannot carry loot.</td><td>2H</td></tr>
+            <tr><td class="mono">Bow</td><td>Ranged, needs the corridor clear</td><td>2H</td></tr>
+            <tr><td class="mono">Wizard</td><td>Whatever the staff does</td><td>1H</td></tr>
+            <tr><td class="mono">Rogue</td><td>Fast hands, no reach</td><td>1H</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The tension this creates is the core inventory decision of the run: <strong>every
+      hand holding a weapon is a hand not carrying loot</strong>. A party that arms itself
+      properly extracts nothing. A party that fills its hands with treasure has no answer
+      when the turn comes.</p>
+
+      <h3>Item descriptions</h3>
+      <p>Descriptions are flavour text with mechanical consequences via INT (§4). They should
+      be written to be read aloud badly, over voice chat, by someone who is running.</p>
+    </section>
+
+    <section id="s6">
+      <div class="sec-head"><span class="sec-num">6</span><h2>The dungeon</h2></div>
+      <p><code>Generator3D</code> builds a level on a <code>Grid3D&lt;CellType&gt;</code> in
+      four stages. One grid cell is <strong>5 world units</strong>; cells are typed
+      <em class="term">None</em>, <em class="term">Room</em>, <em class="term">BottomFloorRoom</em>,
+      <em class="term">Hallway</em> or <em class="term">Stairs</em>.</p>
+
+      <ol class="phases">
+        <li>
+          <h4>Place rooms <span class="dur">rejection sampling</span></h4>
+          <p>Random <code>BoundsInt</code> volumes up to <code>roomMaxSize</code>, discarded
+          on intersection, until <code>roomCount</code> is satisfied.</p>
+        </li>
+        <li>
+          <h4>Triangulate <span class="dur">Delaunay3D</span></h4>
+          <p>Tetrahedralisation over the room centres, producing every plausible connection
+          between neighbouring rooms without any long-distance nonsense.</p>
+        </li>
+        <li>
+          <h4>Select edges <span class="dur">Prim MST + loops</span></h4>
+          <p>Minimum spanning tree guarantees the dungeon is fully connected, then a fraction
+          of the discarded edges are added back. Those extra edges are what make the dungeon
+          a place you can get lost in rather than a tree you can back out of.</p>
+        </li>
+        <li>
+          <h4>Carve hallways <span class="dur">DungeonPathfinder3D · A*</span></h4>
+          <p>A* with a cost function that prices stairs high and already-carved hallway low,
+          so corridors converge and share instead of running in parallel. Vertical movement
+          is expensive by design — the dungeon wants to sprawl before it wants to descend.</p>
+        </li>
+      </ol>
+
+      <h3>Seeding and determinism</h3>
+      <p>Generation is fully deterministic from a single integer. <code>Generate(int seed)</code>
+      is the entry point; the component's <em class="term">Seeding</em> fields decide what
+      <code>Start()</code> passes it. This matters more than it sounds: the network plan
+      replicates <strong>one integer</strong> instead of several thousand tile spawns.</p>
+      <p>The handshake, once built: host picks a seed → seed goes in the lobby data and a
+      <code>NetworkVariable</code> → every client calls <code>Generate(seed)</code> locally →
+      clients report generation complete → host releases spawn. Nothing about the geometry
+      itself is ever sent.</p>
+    </section>
+
+    <section id="s7">
+      <div class="sec-head"><span class="sec-num">7</span><h2>Multiplayer architecture</h2></div>
+
+      <div class="statblock">
+        <h4>Network stack</h4>
+        <p class="sub">As built, today</p>
+        <hr>
+        <dl class="rows">
+          <div class="row"><dt>Topology</dt><dd>Client-hosted. Host is server and player.</dd></div>
+          <div class="row"><dt>Library</dt><dd>Netcode for GameObjects 2.1.1</dd></div>
+          <div class="row"><dt>Transport</dt><dd>FacepunchTransport — Steam P2P, no dedicated servers</dd></div>
+          <div class="row"><dt>Matchmaking</dt><dd>Steam lobbies · invite, friends list, or SteamID64</dd></div>
+          <div class="row"><dt>Party size</dt><dd>4 (<code>StartHost(4)</code>)</dd></div>
+          <div class="row"><dt>Transforms</dt><dd>ClientNetworkTransform — client-authoritative</dd></div>
+          <div class="row"><dt>Animation</dt><dd>OwnerNetworkAnimator — client-authoritative</dd></div>
+          <div class="row"><dt>Character</dt><dd>Kinematic Character Controller, owner-gated input</dd></div>
+        </dl>
+      </div>
+
+      <h3>The authority position</h3>
+      <p>Movement and animation are client-authoritative. That is the correct trade for a
+      four-player friends-only game over Steam P2P — it makes movement feel right and costs
+      nothing that matters, because a cheater in a private lobby is only ruining their own
+      evening. It is <em>not</em> a position that survives public matchmaking, and the
+      decision should be revisited the moment strangers can join a lobby.</p>
+      <p>Things that must stay server-authoritative regardless: ability score rolls, the
+      dungeon seed, loot spawn tables, quota accounting, and the extraction timer.</p>
+
+      <h3>Known gap: item pickup is local-only</h3>
+      <p>Picking an item up currently instantiates a copy in the local player's hand and
+      destroys the world object <em>on that client only</em>. Every other player still sees
+      the item on the floor and can take it themselves. This needs a server-authoritative
+      pickup RPC before any multiplayer playtest is meaningful — it is the top of the
+      roadmap for that reason.</p>
+    </section>
+
+    <section id="s8">
+      <div class="sec-head"><span class="sec-num">8</span><h2>Proximity voice</h2></div>
+      <p>Not built yet. It is also the single feature the design leans on hardest, so the
+      specification comes before the implementation choice.</p>
+
+      <h3>Three voice modes</h3>
+      <p>Push-to-talk selects a mode; the mode sets the falloff curve and how much attention
+      it costs you. Shouting reaches the whole wing and tells the dungeon exactly where you are.</p>
+
+      <figure>
+        <div class="chartwrap">
+        <svg viewBox="0 0 640 250" role="img" aria-label="Voice volume against distance for three modes: whisper falls silent at 4 metres, talk at 14 metres, shout at 30 metres.">
+          <!-- grid -->
+          <g stroke="var(--rule-soft)" stroke-width="1">
+            <line x1="64" y1="200" x2="608" y2="200"></line>
+            <line x1="64" y1="158" x2="608" y2="158"></line>
+            <line x1="64" y1="116" x2="608" y2="116"></line>
+            <line x1="64" y1="74"  x2="608" y2="74"></line>
+            <line x1="64" y1="32"  x2="608" y2="32"></line>
+          </g>
+          <!-- axes -->
+          <g stroke="var(--rule)" stroke-width="1.5">
+            <line x1="64" y1="32" x2="64" y2="200"></line>
+          </g>
+          <!-- y labels -->
+          <g fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="end">
+            <text x="55" y="204">0%</text>
+            <text x="55" y="162">25</text>
+            <text x="55" y="120">50</text>
+            <text x="55" y="78">75</text>
+            <text x="55" y="36">100</text>
+          </g>
+          <!-- x labels -->
+          <g fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+            <text x="64" y="219">0</text>
+            <text x="154.7" y="219">5</text>
+            <text x="245.3" y="219">10</text>
+            <text x="336" y="219">15</text>
+            <text x="426.7" y="219">20</text>
+            <text x="517.3" y="219">25</text>
+            <text x="608" y="219">30</text>
+            <text x="336" y="240" font-size="9.5" letter-spacing="1.5">DISTANCE FROM SPEAKER (METRES)</text>
+          </g>
+          <!-- curves -->
+          <path d="M 64.0,32.0 L 118.4,32.0 L 138.8,44.4 L 159.2,56.4 L 179.6,67.9 L 200.0,79.0 L 220.4,89.7 L 240.8,99.9 L 261.2,109.7 L 281.6,119.0 L 302.0,127.9 L 322.4,136.3 L 342.8,144.3 L 363.2,151.8 L 383.6,158.7 L 404.0,165.3 L 424.4,171.3 L 444.8,176.7 L 465.2,181.7 L 485.6,186.1 L 506.0,190.0 L 526.4,193.3 L 546.8,196.0 L 567.2,198.1 L 587.6,199.4 L 608.0,200.0"
+                fill="none" stroke="var(--broken)" stroke-width="2.25" stroke-linejoin="round"></path>
+          <path d="M 64.0,32.0 L 91.2,32.0 L 100.6,44.4 L 110.1,56.4 L 119.5,67.9 L 129.0,79.0 L 138.4,89.7 L 147.9,99.9 L 157.3,109.7 L 166.8,119.0 L 176.2,127.9 L 185.6,136.3 L 195.1,144.3 L 204.5,151.8 L 214.0,158.7 L 223.4,165.3 L 232.9,171.3 L 242.3,176.7 L 251.8,181.7 L 261.2,186.1 L 270.6,190.0 L 280.1,193.3 L 289.5,196.0 L 299.0,198.1 L 308.4,199.4 L 317.9,200.0"
+                fill="none" stroke="var(--torch)" stroke-width="2.25" stroke-linejoin="round"></path>
+          <path d="M 64.0,32.0 L 73.1,32.0 L 75.7,44.4 L 78.4,56.4 L 81.0,67.9 L 83.6,79.0 L 86.3,89.7 L 88.9,99.9 L 91.6,109.7 L 94.2,119.0 L 96.9,127.9 L 99.5,136.3 L 102.2,144.3 L 104.8,151.8 L 107.4,158.7 L 110.1,165.3 L 112.7,171.3 L 115.4,176.7 L 118.0,181.7 L 120.7,186.1 L 123.3,190.0 L 126.0,193.3 L 128.6,196.0 L 131.2,198.1 L 133.9,199.4 L 136.5,200.0"
+                fill="none" stroke="var(--arcane)" stroke-width="2.25" stroke-linejoin="round"></path>
+          <!-- endpoint dots -->
+          <circle cx="136.5" cy="200" r="3" fill="var(--arcane)"></circle>
+          <circle cx="317.9" cy="200" r="3" fill="var(--torch)"></circle>
+          <circle cx="608" cy="200" r="3" fill="var(--broken)"></circle>
+        </svg>
+        </div>
+        <div class="legend">
+          <span><i class="swatch" style="border-top-color:var(--arcane)"></i>Whisper · silent past 4 m</span>
+          <span><i class="swatch" style="border-top-color:var(--torch)"></i>Talk · silent past 14 m</span>
+          <span><i class="swatch" style="border-top-color:var(--broken)"></i>Shout · silent past 30 m</span>
+        </div>
+        <figcaption>Starting curves for tuning. Each mode holds full volume out to its plateau
+        (0.5 / 1.5 / 3 m) then falls to true silence at its cutoff rather than trailing off —
+        so "out of range" is a place you can stand, not a gradient.</figcaption>
+      </figure>
+
+      <h3>Occlusion and the dungeon</h3>
+      <p>Straight distance is not enough in a dungeon made of walls. Voice should be filtered,
+      not just attenuated, when the path is blocked: a low-pass through stone at roughly a
+      third volume, full clarity through an open doorway. Because hallways are carved as grid
+      cells, the generator already knows the topology — voice occlusion can query the same
+      grid rather than raycasting per frame.</p>
+
+      <h3>Implementation options</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Option</th><th>Cost</th><th>Fit</th><th>Read</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Steam Voice via Facepunch</td>
+              <td class="mono">free</td>
+              <td>Already in the stack</td>
+              <td><strong>Start here.</strong> <code>SteamUser.VoiceRecord</code> plus a Netcode RPC into a
+              positioned <code>AudioSource</code>. No new dependency, no accounts, no per-seat cost.
+              Manual work: opus framing, jitter buffering, occlusion filtering.</td>
+            </tr>
+            <tr>
+              <td>Dissonance</td>
+              <td class="mono">~$70</td>
+              <td>NGO integration ships</td>
+              <td>Solves positional audio, jitter and codecs out of the box. The pragmatic buy if
+              hand-rolled Steam voice stalls for more than a week.</td>
+            </tr>
+            <tr>
+              <td>Vivox</td>
+              <td class="mono">metered</td>
+              <td>Unity first-party</td>
+              <td>Server-brokered and reliable, but adds a Unity Gaming Services dependency and a
+              per-user bill to a game whose entire networking model is free P2P. Wrong shape.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="s9">
+      <div class="sec-head"><span class="sec-num">9</span><h2>Light &amp; fear</h2></div>
+      <p>The dungeon is unlit. Every light source in a run is carried by a player, which
+      makes light a hand-slot cost like everything else (§5) and ties the horror directly
+      to the inventory pressure.</p>
+      <ul>
+        <li><strong>Torches burn down.</strong> A run is longer than a torch. Somebody will be
+        in the dark before extraction, and it will not be the person who planned for it.</li>
+        <li><strong>Light is a beacon.</strong> Whatever the turn (§3) releases navigates toward
+        light and sound. Being visible and being findable are the same property.</li>
+        <li><strong>Dropped torches keep burning.</strong> A torch on the floor is a breadcrumb,
+        a decoy, and a way to give up a hand slot without giving up the light.</li>
+      </ul>
+      <p>URP forward+ with real-time shadows on carried lights only; everything else baked
+      to nothing. The performance ceiling is four dynamic shadow-casting point lights, which
+      is exactly the party size — a constraint worth designing into rather than around.</p>
+    </section>
+
+    <section id="s10">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Build status</h2></div>
+      <p>Where the project actually stands, as of this draft.</p>
+      <div class="tw">
+        <table>
+          <thead><tr><th>System</th><th>State</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Dungeon generation</td><td><span class="chip ship">Working</span></td><td>Rooms, Delaunay, MST, A* hallways, stairs. Now seedable.</td></tr>
+            <tr><td>Character movement</td><td><span class="chip ship">Working</span></td><td>KCC, owner-gated. Third-person camera.</td></tr>
+            <tr><td>Steam lobbies</td><td><span class="chip risk">Rough</span></td><td>Host/join works; join-by-invite path was double-connecting, now fixed.</td></tr>
+            <tr><td>Ability scores</td><td><span class="chip risk">Rough</span></td><td>Rolls and replicates. Nothing reads the values yet.</td></tr>
+            <tr><td>Item pickup</td><td><span class="chip broken">Local only</span></td><td>No RPC — other clients still see the item on the floor.</td></tr>
+            <tr><td>Seed replication</td><td><span class="chip broken">Missing</span></td><td>Each client generates independently. <code>Generate(seed)</code> exists; the handshake doesn't.</td></tr>
+            <tr><td>Proximity voice</td><td><span class="chip none">Not started</span></td><td>See §8. Highest-value unbuilt system.</td></tr>
+            <tr><td>Enemies</td><td><span class="chip none">Not started</span></td><td><code>Scripts/Enemies/</code> is an empty folder.</td></tr>
+            <tr><td>Quota &amp; extraction</td><td><span class="chip none">Not started</span></td><td>The loop in §3 has no code behind phases 4–6.</td></tr>
+            <tr><td>Torches &amp; light</td><td><span class="chip none">Not started</span></td><td>Scene is currently lit conventionally.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Dead code worth deleting</h3>
+      <p>These scripts compile but sit on no prefab in the shipping scene — leftovers from the
+      Rigidbody movement prototype that KCC replaced. They are the first thing that will mislead
+      you six months from now: <code>PlayerMovement</code>, <code>CameraMove</code>,
+      <code>CameraRotate</code>, <code>StairClimb</code>, <code>PlayerController</code>,
+      <code>ClientConnector</code>, <code>DisableForOwner</code>.</p>
+    </section>
+
+    <section id="s11">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Fix log</h2></div>
+      <p>Bugs found and fixed while writing this document. All are in the current commit.</p>
+
+      <div class="log">
+        <details open>
+          <summary><span class="what">Ability scores were never rolled — every stat was 0</span>
+          <span class="where">PlayerStats.cs</span></summary>
+          <div class="body">
+            <p><code>PlayerStats</code> was a plain <code>MonoBehaviour</code> with a method named
+            <code>OnNetworkSpawn()</code>. Unity never calls that on a MonoBehaviour and there was
+            no <code>override</code> keyword to catch it, so the roll silently never happened —
+            every character in every run had STR 0, DEX 0, INT 0, HP 0.</p>
+            <p>Now a <code>NetworkBehaviour</code> that rolls on the server in a real
+            <code>OnNetworkSpawn</code> override and replicates through <code>NetworkVariable</code>s,
+            so all four clients agree on everyone's sheet.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Every die rolled one short</span>
+          <span class="where">PlayerStats.cs</span></summary>
+          <div class="body">
+            <p><code>Random.Range(1, 6)</code> — the <em>integer</em> overload is max-exclusive, so
+            that is a d5, not a d6. Ability scores could never exceed 15, and <code>Range(1, 4)</code>
+            made the HP die a d3.</p>
+            <p>Replaced with a <code>Roll(count, sides)</code> helper using <code>Range(1, sides + 1)</code>.
+            3d6 now actually spans 3–18.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Every dungeon was the same dungeon</span>
+          <span class="where">Dungeon Generator/Generator3D.cs</span></summary>
+          <div class="body">
+            <p><code>random = new Random(0)</code> — hard-coded seed. Every session generated a
+            byte-identical layout.</p>
+            <p>Added a serialized seed, an optional randomise-on-start toggle, and a public
+            <code>Generate(int seed)</code> entry point so the host can drive generation from a
+            broadcast seed later. <code>placedHallways</code> is now cleared per generation, so
+            regenerating in one session doesn't inherit the previous layout's corridors.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Joining a friend over Steam could never work</span>
+          <span class="where">Network/SteamClientConnector.cs</span></summary>
+          <div class="body">
+            <p>The join button read <code>SteamClient.SteamId</code> — the local player's own ID —
+            so every client tried to connect to itself, and the SteamID input field was never read
+            at all.</p>
+            <p>Now parses the field as a SteamID64, reports a clear error on bad input, and only
+            tears down the menu camera once the input validates.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Accepting a Steam invite connected you twice</span>
+          <span class="where">Network/GameNetworkManager.cs</span></summary>
+          <div class="body">
+            <p><code>OnGameLobbyJoinRequested</code> called <code>StartClient</code>, then entering
+            the lobby fired <code>OnLobbyEntered</code>, which called <code>StartClient</code> again.
+            Both paths also re-subscribed the connection callbacks without ever unsubscribing.</p>
+            <p>The invite handler now only joins the Steam lobby and lets <code>OnLobbyEntered</code>
+            own the Netcode connection. <code>StartClient</code> bails out if already listening and
+            de-duplicates its callback subscriptions.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Every client ran every other player's pickup raycast</span>
+          <span class="where">PickUpItems/PlayerPickupDetector.cs</span></summary>
+          <div class="body">
+            <p>Another dead <code>OnNetworkSpawn()</code> on a MonoBehaviour, so the intended owner
+            gate never ran. It also polled <code>Input.GetKey</code> inside <code>FixedUpdate</code>,
+            which both drops presses and repeats them, and raycast against every layer before
+            filtering by hand.</p>
+            <p>Now resolves ownership through the parent <code>NetworkObject</code> at runtime,
+            reads <code>GetKeyDown</code> in <code>Update</code>, and raycasts with a
+            <code>Fantasy Object</code> layer mask. Still local-only on the item side — see §7.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">.gitignore was UTF-16 and git could not read a line of it</span>
+          <span class="where">.gitignore</span></summary>
+          <div class="body">
+            <p>Git parses ignore files as bytes and does not understand UTF-16. Every rule in the
+            file was inert, so <code>Library/</code> and <code>Temp/</code> — hundreds of megabytes
+            of regenerable cache — were never actually being ignored.</p>
+            <p>Rewritten as UTF-8 with the standard Unity rule set, plus a <code>.gitattributes</code>
+            wiring Unity's YAML merge tool for scenes and prefabs.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Only the scripts folder was under version control</span>
+          <span class="where">repository layout</span></summary>
+          <div class="body">
+            <p>The git repo lived at <code>Assets/Created/Scripts/</code>. Scenes, prefabs,
+            ProjectSettings and the package manifest existed on one disk and nowhere else.</p>
+            <p>Promoted to the project root with history intact. Asset Store content
+            (~1.3 GB) is gitignored with a re-import list in <code>docs/</code>;
+            KinematicCharacterController stays tracked because it carries local netcode edits.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><span class="what">Project would not open on 6.3 — unresolvable package</span>
+          <span class="where">Packages/manifest.json</span></summary>
+          <div class="body">
+            <p><code>com.unity.rendering.light-transport@1.0.1</code> no longer ships as a built-in
+            package in Unity 6.3; it was folded into <code>render-pipelines.core</code>. The explicit
+            pin made the whole dependency graph unresolvable.</p>
+            <p>Pin removed, URP core and universal bumped 17.0.3 → 17.3.0 to match what
+            6000.3.23f1 actually ships, and the stale lock file cleared so everything re-resolves.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="s12">
+      <div class="sec-head"><span class="sec-num">12</span><h2>Roadmap</h2></div>
+      <p>Ordered by what unblocks the most. Each milestone ends in something playable with
+      three friends, because a co-op game that can't be played with friends can't be designed.</p>
+
+      <div class="tw">
+        <table>
+          <thead><tr><th>Milestone</th><th>Ships</th><th>Playtest question</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>M1 · Shared world</strong></td>
+              <td>Seed handshake, server-authoritative pickup RPC, networked item spawns</td>
+              <td>Do four people see the same dungeon and the same loot?</td>
+            </tr>
+            <tr>
+              <td><strong>M2 · Voice</strong></td>
+              <td>Steam voice over NGO into positional AudioSources; three modes; grid-based occlusion</td>
+              <td>Is splitting up scary and funny, or just annoying?</td>
+            </tr>
+            <tr>
+              <td><strong>M3 · The loop</strong></td>
+              <td>Quota, extraction timer, the turn, tally screen, torches that burn down</td>
+              <td>Does anyone ever drop the loot to survive?</td>
+            </tr>
+            <tr>
+              <td><strong>M4 · Something in the dark</strong></td>
+              <td>First enemy — navigates to light and sound, not to players</td>
+              <td>Does the party go quiet on their own, without being told to?</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Ability score consumers (§4) slot into M3 alongside the loop, once there is enough
+      game for a bad Strength roll to actually cost something.</p>
+    </section>
+
+    <section id="s13">
+      <div class="sec-head"><span class="sec-num">13</span><h2>Open questions</h2></div>
+      <p>Decisions that need making before the systems above harden around a guess.</p>
+      <ul class="qs">
+        <li><b>What do ability scores buy?</b><span>§4 proposes carry / speed / description
+        detail. It is a proposal, not a decision, and everything in M3 depends on it.</span></li>
+        <li><b>First or third person?</b><span>The item data carries both first-person and
+        third-person hand transforms, and the player prefab has an Arms rig <em>and</em> a
+        third-person camera. Right now the game is quietly trying to be both. Proximity voice
+        and torch-carrying both read better in first person.</span></li>
+        <li><b>Does the party share one quota or four purses?</b><span>Shared quota makes the
+        loop cooperative. Individual purses make it a comedy. They are different games.</span></li>
+        <li><b>Death: spectate, or stay in voice as something else?</b><span>Lethal Company's
+        answer — dead players keep talking, and that's most of the entertainment — fits pillar II
+        exactly. Worth stealing deliberately rather than by default.</span></li>
+        <li><b>Public lobbies, ever?</b><span>Currently <code>lobby.SetPublic()</code> with
+        client-authoritative movement. If public lobbies are the plan, §7's authority model has
+        to change before anyone finds it.</span></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Party Wipe · working title</span>
+    <span>Design doc draft 1 · 4 Sep 2026</span>
+    <span>JoshWright22/3dFungeonGame</span>
+  </footer>
+
+</div>
