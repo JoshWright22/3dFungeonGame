@@ -152,6 +152,24 @@ public class Generator3D : MonoBehaviour
     HashSet<Vector3Int> placedHallways = new HashSet<Vector3Int>();
     readonly List<Vector3Int> placedTorches = new List<Vector3Int>();
 
+    /// <summary>A staircase recorded during pathfinding and built once the layout is final.</summary>
+    struct StairRun
+    {
+        public Vector3Int Prev;
+        public Vector3Int Horizontal;
+        public Vector3Int Vertical;
+        public Vector3 Delta;
+        public int XDir;
+        public int ZDir;
+
+        /// <summary>The two cells this run joins, for connectivity purposes.</summary>
+        public Vector3Int Lower => Prev;
+        public Vector3Int Upper => Prev + Vertical + Horizontal * 3;
+    }
+
+    readonly List<StairRun> stairRuns = new List<StairRun>();
+    readonly List<(Vector3Int cell, Vector3Int dir)> doorways = new List<(Vector3Int, Vector3Int)>();
+
     // Define the world unit size for one grid cell
     private const float WorldUnitSize = 5f;
     private const float HalfWorldUnit = WorldUnitSize / 2f; // 2.5f - This is the fixed vertical center
@@ -214,6 +232,8 @@ public class Generator3D : MonoBehaviour
         rooms = new List<Room>();
         placedHallways.Clear();
         placedTorches.Clear();
+        stairRuns.Clear();
+        doorways.Clear();
         entryRoom = null;
 
         PlaceRooms();
@@ -227,10 +247,21 @@ public class Generator3D : MonoBehaviour
         Triangulate();
         CreateHallways();
         PathfindHallways();
-        PlaceWalls();
-        ChooseEntry();
 
-        Debug.Log($"Dungeon generated from seed {dungeonSeed} ({rooms.Count} rooms, spawn {PartySpawnPoint}).", this);
+        // Layout is only final once everything the party cannot reach has been carved back out.
+        SelectEntryRoom();
+        int pruned = PruneUnreachable();
+
+        // Geometry is built from the finished grid in one pass, so nothing is ever spawned for a
+        // region that later turns out to be unreachable.
+        SpawnFloors();
+        SpawnStairs();
+        SpawnDoorways();
+        PlaceWalls();
+        ResolveSpawnPoint();
+
+        Debug.Log($"Dungeon '{(profile != null ? profile.profileName : "inline")}' seed {dungeonSeed}: "
+            + $"{rooms.Count} reachable rooms ({pruned} pruned), spawn {PartySpawnPoint}.", this);
     }
 
     /// <summary>
@@ -271,6 +302,169 @@ public class Generator3D : MonoBehaviour
         Debug.Log($"Dungeon profile '{profile.profileName}' applied.", this);
     }
 
+    /// <summary>
+    /// Picks the room the party arrives in: the lowest, largest one, which is most likely to
+    /// have space for four delvers and a way onward.
+    /// </summary>
+    void SelectEntryRoom()
+    {
+        entryRoom = null;
+        int bestScore = int.MinValue;
+
+        foreach (var room in rooms)
+        {
+            var b = room.bounds;
+            int score = (-b.position.y * 1000) + b.size.x * b.size.z;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                entryRoom = room;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Flood-fills from the entry room and carves out everything it cannot reach.
+    ///
+    /// The generator connects rooms through a spanning tree, but the A* that carves each corridor
+    /// can fail - it gives up when a route would need a staircase it has no room for. Any room on
+    /// the far side of a failed corridor is sealed off. Rather than leave the party walking into a
+    /// dungeon with rooms they can never enter, those cells go back to solid rock.
+    /// </summary>
+    int PruneUnreachable()
+    {
+        if (entryRoom == null) return 0;
+
+        var reachable = new HashSet<Vector3Int>();
+        var queue = new Queue<Vector3Int>();
+
+        // Seed from every cell of the entry room's floor.
+        foreach (var pos in entryRoom.bounds.allPositionsWithin)
+        {
+            if (!grid.InBounds(pos)) continue;
+            if (grid[pos] != CellType.BottomFloorRoom) continue;
+            if (reachable.Add(pos)) queue.Enqueue(pos);
+        }
+
+        // Staircases are the only vertical links, so they are added as explicit edges rather
+        // than relying on grid adjacency.
+        var stairLinks = new Dictionary<Vector3Int, List<Vector3Int>>();
+        foreach (var run in stairRuns)
+        {
+            AddLink(stairLinks, run.Lower, run.Upper);
+            AddLink(stairLinks, run.Upper, run.Lower);
+
+            // The ramp cells themselves sit between the two ends.
+            Vector3Int a = run.Prev + run.Horizontal;
+            Vector3Int b = run.Prev + run.Vertical + run.Horizontal * 2;
+            AddLink(stairLinks, run.Lower, a);
+            AddLink(stairLinks, a, run.Lower);
+            AddLink(stairLinks, a, b);
+            AddLink(stairLinks, b, a);
+            AddLink(stairLinks, b, run.Upper);
+            AddLink(stairLinks, run.Upper, b);
+        }
+
+        while (queue.Count > 0)
+        {
+            Vector3Int cell = queue.Dequeue();
+
+            foreach (Vector3Int dir in Directions)
+            {
+                Vector3Int next = cell + dir;
+                if (!grid.InBounds(next)) continue;
+                if (!IsWalkable(grid[next])) continue;
+                if (reachable.Add(next)) queue.Enqueue(next);
+            }
+
+            if (stairLinks.TryGetValue(cell, out var links))
+            {
+                foreach (var next in links)
+                {
+                    if (!grid.InBounds(next)) continue;
+                    if (!IsWalkable(grid[next])) continue;
+                    if (reachable.Add(next)) queue.Enqueue(next);
+                }
+            }
+        }
+
+        // Carve back anything the flood never touched.
+        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < size.y; y++)
+        for (int z = 0; z < size.z; z++)
+        {
+            var cell = new Vector3Int(x, y, z);
+            if (!IsWalkable(grid[cell])) continue;
+            if (reachable.Contains(cell)) continue;
+
+            grid[cell] = CellType.None;
+        }
+
+        // Drop rooms with no reachable floor left, and the staircases and doorways that served them.
+        int before = rooms.Count;
+        rooms.RemoveAll(room => !RoomHasReachableFloor(room, reachable));
+
+        stairRuns.RemoveAll(run => !reachable.Contains(run.Lower) || !reachable.Contains(run.Upper));
+        doorways.RemoveAll(d => !reachable.Contains(d.cell) || !reachable.Contains(d.cell + d.dir));
+
+        return before - rooms.Count;
+    }
+
+    static void AddLink(Dictionary<Vector3Int, List<Vector3Int>> map, Vector3Int from, Vector3Int to)
+    {
+        if (!map.TryGetValue(from, out var list))
+        {
+            list = new List<Vector3Int>();
+            map[from] = list;
+        }
+
+        list.Add(to);
+    }
+
+    bool RoomHasReachableFloor(Room room, HashSet<Vector3Int> reachable)
+    {
+        foreach (var pos in room.bounds.allPositionsWithin)
+            if (pos.y == room.bounds.yMin && reachable.Contains(pos)) return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Lays a floor on every cell a delver can stand on.
+    ///
+    /// Only the bottom level of a room gets a floor. The cells above it are headroom, which is
+    /// what makes a tall room tall - previously every level of a room was floored, producing a
+    /// second storey with no way up to it.
+    /// </summary>
+    void SpawnFloors()
+    {
+        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < size.y; y++)
+        for (int z = 0; z < size.z; z++)
+        {
+            var cell = new Vector3Int(x, y, z);
+            CellType type = grid[cell];
+
+            // Stairs carry their own ramp geometry; Room is headroom above a floor.
+            if (type != CellType.BottomFloorRoom && type != CellType.Hallway) continue;
+
+            InstantiateCellObject(cell);
+        }
+    }
+
+    void SpawnStairs()
+    {
+        foreach (var run in stairRuns)
+            PlaceStairs(run.Prev, run.Horizontal, run.Vertical, run.Delta, run.XDir, run.ZDir);
+    }
+
+    void SpawnDoorways()
+    {
+        foreach (var (cell, dir) in doorways)
+            PlaceDoor(cell, Quaternion.identity, dir);
+    }
+
     /// <summary>Destroys everything the previous generation spawned and starts a fresh container.</summary>
     void ClearDungeon()
     {
@@ -293,29 +487,11 @@ public class Generator3D : MonoBehaviour
     }
 
     /// <summary>
-    /// Picks the room the party arrives in: the lowest, largest room, which is the one most
-    /// likely to have space for four delvers and a way onward.
+    /// Places the party on the entry room's floor, confirmed against the geometry that actually
+    /// got built rather than predicted from prefab bounds.
     /// </summary>
-    void ChooseEntry()
+    void ResolveSpawnPoint()
     {
-        entryRoom = null;
-        int bestScore = int.MinValue;
-
-        foreach (var room in rooms)
-        {
-            var b = room.bounds;
-            int footprint = b.size.x * b.size.z;
-
-            // Prefer low, then large. Depth dominates so the party never starts on a top floor.
-            int score = (-b.position.y * 1000) + footprint;
-
-            if (score > bestScore)
-            {
-                bestScore = score;
-                entryRoom = room;
-            }
-        }
-
         if (entryRoom == null)
         {
             PartySpawnPoint = Vector3.zero;
@@ -333,9 +509,6 @@ public class Generator3D : MonoBehaviour
 
         PartySpawnPoint = predicted + new Vector3(0f, 0.15f, 0f);
 
-        // Then confirm against the geometry that actually got built. Computing a floor height
-        // from prefab bounds is a prediction; a raycast is the ground truth, and it is what
-        // stops the party spawning a few centimetres inside the floor.
         // The tiles were instantiated moments ago; push their transforms into the physics scene
         // before asking it anything.
         Physics.SyncTransforms();
@@ -679,7 +852,6 @@ public class Generator3D : MonoBehaviour
             if (add)
             {
                 rooms.Add(newRoom);
-                PlaceRoomTiles(newRoom.bounds.position, newRoom.bounds.size);
 
                 foreach (var pos in newRoom.bounds.allPositionsWithin)
                 {
@@ -852,12 +1024,17 @@ public class Generator3D : MonoBehaviour
                             grid[prev + verticalOffset + horizontalOffset * 2] = CellType.Stairs;
 
 
-                            Vector3Int tempdelta = delta * -1;
-                            tempdelta.y = 0;
-                            Vector3 tempOffests = new Vector3() + prev - (verticalOffset / 2) + (horizontalOffset * 2);
-                            PlaceStairs(prev, horizontalOffset, verticalOffset, delta, xDir, zDir);
-
-
+                            // Recorded, not built: the layout is not final until unreachable
+                            // regions have been pruned, and building here would strand geometry.
+                            stairRuns.Add(new StairRun
+                            {
+                                Prev = prev,
+                                Horizontal = horizontalOffset,
+                                Vertical = verticalOffset,
+                                Delta = delta,
+                                XDir = xDir,
+                                ZDir = zDir,
+                            });
                         }
 
                         if (drawHallwayGizmos)
@@ -876,15 +1053,13 @@ public class Generator3D : MonoBehaviour
                         else
                         {
                             placedHallways.Add(pos);
-                            PlaceHallway(pos);
+
                             foreach (Vector3Int direction in Directions)
                             {
                                 if (!grid.InBounds(pos + direction)) continue;
 
                                 if (grid[pos + direction] == CellType.BottomFloorRoom)
-                                {
-                                    PlaceDoor(pos, Quaternion.LookRotation(direction, Vector3.up), direction);
-                                }
+                                    doorways.Add((pos, direction));
                             }
                         }
 
@@ -908,30 +1083,8 @@ public class Generator3D : MonoBehaviour
         Spawn(prefab, worldPosition, Quaternion.identity);
     }
 
-    /// <summary>
-    /// Places a cube. The location is the bottom-left-front of the room (grid units).
-    /// Instantiates a separate 1x1x1 cube for every cell of the room.
-    /// </summary>
-    void PlaceRoomTiles(Vector3Int location, Vector3Int size)
-    {
-        for (int x = 0; x < size.x; x++)
-        {
-            for (int y = 0; y < size.y; y++)
-            {
-                for (int z = 0; z < size.z; z++)
-                {
-                    Vector3Int tileLocation = location + new Vector3Int(x, y, z);
-                    InstantiateCellObject(tileLocation);
-                }
-            }
-        }
-    }
 
 
-    void PlaceHallway(Vector3Int location)
-    {
-        InstantiateCellObject(location);
-    }
 
     /// <summary>
     /// Detect which direction the stairs are going and place accordingly.
@@ -944,24 +1097,29 @@ public class Generator3D : MonoBehaviour
         Vector3Int gridStairOne = prev + horizontalOffset;
         Vector3Int gridStairFour = prev + horizontalOffset * 2 + verticalOffset;
 
-        // The direction for rotation
-        Vector3 direction = new Vector3(xDir * -1f, 0, zDir * -1f);
         bool goingUp = delta.y > 0;
 
-        Quaternion rotation = goingUp
-            ? Quaternion.LookRotation(direction * -1f, Vector3.up)
-            : Quaternion.LookRotation(direction, Vector3.up);
+        // Measured from the mesh: the ramp rises along its own -Z (climb vector -0.08, 2.49,
+        // -4.72). So to make it ascend in a given world direction, -Z must point that way, which
+        // means forward points the opposite way. Aiming forward along the ascent - the obvious
+        // reading - builds every staircase backwards.
+        Vector3 travel = new Vector3(xDir, 0f, zDir);
+        Vector3 ascent = goingUp ? travel : -travel;
 
-        // Each ramp piece is centred in its own cell at that cell's floor height. Going up, the
-        // second piece starts half a storey higher; going down, the first one does.
-        float lowerY = gridStairOne.y * WorldUnitSize + FloorSurfaceOffset;
-        float upperY = gridStairFour.y * WorldUnitSize + FloorSurfaceOffset;
+        Quaternion rotation = Quaternion.LookRotation(-ascent, Vector3.up);
+
+        // Both ramps are measured from the LOWER floor, because together they climb one storey:
+        // the first spans floor -> floor+2.5, the second floor+2.5 -> floor+5. Measuring the
+        // second from the upper floor instead left a 7.5 unit gap between two 2.5 unit ramps,
+        // which is why the staircases could not be walked up.
+        int lowerLevel = Mathf.Min(gridStairOne.y, gridStairFour.y);
+        float lowerY = lowerLevel * WorldUnitSize + FloorSurfaceOffset;
 
         Vector3 oneCentre = CellCentre(gridStairOne);
         Vector3 fourCentre = CellCentre(gridStairFour);
 
         float oneY = goingUp ? lowerY : lowerY + halfStepHeight;
-        float fourY = goingUp ? upperY + halfStepHeight : upperY;
+        float fourY = goingUp ? lowerY + halfStepHeight : lowerY;
 
         Spawn(stairPrefab, CentredSpawnPosition(stairPrefab, oneCentre, rotation, oneY), rotation);
         Spawn(stairPrefab, CentredSpawnPosition(stairPrefab, fourCentre, rotation, fourY), rotation);
