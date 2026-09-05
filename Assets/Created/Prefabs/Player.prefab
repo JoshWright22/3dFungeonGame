@@ -176,12 +176,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   DiscreteCollisionEvents: 0
-  StepHandling: 1
-  MaxStepHeight: 0.5
-  AllowSteppingWithoutStableGrounding: 0
+  StepHandling: 2
+  MaxStepHeight: 0.45
+  AllowSteppingWithoutStableGrounding: 1
   MinRequiredStepDepth: 0.1
   LedgeAndDenivelationHandling: 1
-  MaxStableDistanceFromLedge: 0.5
+  MaxStableDistanceFromLedge: 0.35
   MaxVelocityForLedgeSnap: 0
   MaxStableDenivelationAngle: 180
   InteractiveRigidbodyHandling: 1
@@ -314,6 +314,10 @@ MonoBehaviour:
   FullyLadenSpeedMultiplier: 0.62
   Gravity: {x: 0, y: -26, z: 0}
   IgnoredColliders: []
+  CameraFollowPoint: {fileID: 0}
+  StandingEyeHeight: 1.62
+  CrouchedEyeHeight: 0.95
+  EyeHeightSharpness: 12
   ThirdPersonAnimator: {fileID: 233376320093754971}
   FirstPersonAnimator: {fileID: 8468422766228974299}
 --- !u!114 &3205590549421505382

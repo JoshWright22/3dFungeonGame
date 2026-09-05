@@ -123,9 +123,9 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     float wallYNudge = 0f;
 
-    [Tooltip("Synty wall and doorway meshes are single-sided: the back face is invisible. Spawn a mirrored copy so both sides are textured. Doubles wall geometry - turn off only if you are sure no back face is ever visible.")]
+    [Tooltip("A wall mesh with faces on BOTH sides (e.g. SM_Env_Wall_01_DoubleSided), used only where a wall is genuinely seen from both sides. Leave empty to fall back to an ordinary wall.")]
     [SerializeField]
-    bool doubleSidedWalls = true;
+    GameObject doubleSidedWallPrefab;
 
     [Header("Debug")]
     [SerializeField]
@@ -168,6 +168,13 @@ public class Generator3D : MonoBehaviour
     }
 
     readonly List<StairRun> stairRuns = new List<StairRun>();
+
+    /// <summary>
+    /// The exact (cell, direction) pairs where a staircase opens onto a floor. Only these get
+    /// left unwalled; a staircase that merely runs alongside a corridor still needs a wall, or
+    /// there is a hole in the corridor edge.
+    /// </summary>
+    readonly HashSet<(Vector3Int cell, Vector3Int dir)> stairMouths = new HashSet<(Vector3Int, Vector3Int)>();
     readonly List<(Vector3Int cell, Vector3Int dir)> doorways = new List<(Vector3Int, Vector3Int)>();
 
     // Define the world unit size for one grid cell
@@ -233,6 +240,7 @@ public class Generator3D : MonoBehaviour
         placedHallways.Clear();
         placedTorches.Clear();
         stairRuns.Clear();
+        stairMouths.Clear();
         doorways.Clear();
         entryRoom = null;
 
@@ -254,6 +262,8 @@ public class Generator3D : MonoBehaviour
 
         // Geometry is built from the finished grid in one pass, so nothing is ever spawned for a
         // region that later turns out to be unreachable.
+        MapStairMouths();
+
         SpawnFloors();
         SpawnStairs();
         SpawnDoorways();
@@ -374,7 +384,7 @@ public class Generator3D : MonoBehaviour
             {
                 Vector3Int next = cell + dir;
                 if (!grid.InBounds(next)) continue;
-                if (!IsWalkable(grid[next])) continue;
+                if (!HasFloor(grid[next])) continue;
                 if (reachable.Add(next)) queue.Enqueue(next);
             }
 
@@ -383,7 +393,7 @@ public class Generator3D : MonoBehaviour
                 foreach (var next in links)
                 {
                     if (!grid.InBounds(next)) continue;
-                    if (!IsWalkable(grid[next])) continue;
+                    if (!HasFloor(grid[next])) continue;
                     if (reachable.Add(next)) queue.Enqueue(next);
                 }
             }
@@ -395,7 +405,7 @@ public class Generator3D : MonoBehaviour
         for (int z = 0; z < size.z; z++)
         {
             var cell = new Vector3Int(x, y, z);
-            if (!IsWalkable(grid[cell])) continue;
+            if (!HasFloor(grid[cell])) continue;
             if (reachable.Contains(cell)) continue;
 
             grid[cell] = CellType.None;
@@ -450,6 +460,25 @@ public class Generator3D : MonoBehaviour
             if (type != CellType.BottomFloorRoom && type != CellType.Hallway) continue;
 
             InstantiateCellObject(cell);
+        }
+    }
+
+    /// <summary>Records where each staircase meets a floor, in both directions.</summary>
+    void MapStairMouths()
+    {
+        stairMouths.Clear();
+
+        foreach (var run in stairRuns)
+        {
+            Vector3Int h = run.Horizontal;
+
+            // Bottom of the run: the floor cell steps onto the first ramp cell.
+            stairMouths.Add((run.Lower, h));
+            stairMouths.Add((run.Lower + h, -h));
+
+            // Top of the run: the last ramp cell steps onto the upper floor.
+            stairMouths.Add((run.Upper, -h));
+            stairMouths.Add((run.Upper - h, h));
         }
     }
 
@@ -529,6 +558,18 @@ public class Generator3D : MonoBehaviour
     }
 
     /// <summary>
+    /// Cells with something underfoot. Distinct from <see cref="IsWalkable"/>, which also counts
+    /// Room - the headroom ABOVE a room's floor, which is open space with nothing to stand on.
+    ///
+    /// Walls and connectivity must use this one. Treating headroom as walkable left no wall
+    /// between an upper corridor and a room's open volume, so you could stroll off the edge.
+    /// </summary>
+    bool HasFloor(CellType t)
+    {
+        return t == CellType.BottomFloorRoom || t == CellType.Hallway || t == CellType.Stairs;
+    }
+
+    /// <summary>
     /// Seals the dungeon. Any walkable cell that borders solid rock gets a wall on that edge,
     /// which is what turns a field of floor tiles into rooms and corridors you cannot see across.
     /// </summary>
@@ -551,25 +592,48 @@ public class Generator3D : MonoBehaviour
             var cell = new Vector3Int(x, y, z);
             CellType here = grid[cell];
 
+            // Every open cell gets walled, headroom included - otherwise a tall room is open to
+            // the void above head height.
             if (!IsWalkable(here)) continue;
 
             Vector3 cellCentre = CellCentre(cell);
+            bool standable = HasFloor(here);
 
             foreach (Vector3Int dir in Directions)
             {
                 Vector3Int neighbour = cell + dir;
+                bool inBounds = grid.InBounds(neighbour);
+                CellType beyond = inBounds ? grid[neighbour] : CellType.None;
 
-                bool solid = !grid.InBounds(neighbour) || !IsWalkable(grid[neighbour]);
-                if (!solid) continue;
+                // Leave the staircase mouths open, but only those - a ramp running alongside a
+                // corridor is not a way through, and skipping its wall leaves a hole to fall down.
+                if (stairMouths.Contains((cell, dir))) continue;
 
-                // Never wall a cell off from a staircase landing.
-                if (grid.InBounds(neighbour) && grid[neighbour] == CellType.Stairs) continue;
+                bool enclose = !inBounds || !IsWalkable(beyond);
 
-                PlaceWall(cellCentre, dir, wallFloorOffset);
-                TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
+                // A guard wall stops you strolling off a floor into open space that has none -
+                // an upper corridor meeting a room's headroom, for instance.
+                bool guard = standable && !enclose && !HasFloor(beyond);
+
+                if (!enclose && !guard) continue;
+
+                // A guard wall is seen from both sides, so it needs a mesh with faces on both.
+                GameObject prefab = guard && doubleSidedWallPrefab != null
+                    ? doubleSidedWallPrefab
+                    : wallPrefabs[random.Next(wallPrefabs.Length)];
+
+                PlaceWall(cellCentre, dir, wallFloorOffset, prefab);
+
+                // A staircase cell's ramp descends half a storey below that cell's floor line, so
+                // a wall based at the floor line leaves the lower half of the ramp open to the
+                // drop beside it. A second course underneath closes it.
+                if (here == CellType.Stairs)
+                    PlaceWall(cellCentre, dir, wallFloorOffset - HalfWorldUnit, prefab);
+
+                if (standable) TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
             }
 
-            if (ceilingPrefab != null)
+            if (ceilingPrefab != null && standable)
             {
                 Vector3Int above = cell + Vector3Int.up;
                 bool openAbove = grid.InBounds(above) && IsWalkable(grid[above]);
@@ -590,9 +654,8 @@ public class Generator3D : MonoBehaviour
     /// -X, so the piece is pushed half a cell along its own right vector to sit centred on the
     /// edge rather than hanging off it.
     /// </summary>
-    void PlaceWall(Vector3 cellCentre, Vector3Int dir, float floorOffset)
+    void PlaceWall(Vector3 cellCentre, Vector3Int dir, float floorOffset, GameObject prefab)
     {
-        GameObject prefab = wallPrefabs[random.Next(wallPrefabs.Length)];
         if (prefab == null) return;
 
         Vector3 outward = new Vector3(dir.x, 0f, dir.z);
@@ -604,22 +667,20 @@ public class Generator3D : MonoBehaviour
     }
 
     /// <summary>
-    /// Stands a wall-sized piece centred on a cell boundary, and - because the Synty wall meshes
-    /// only have faces on one side - optionally a mirrored copy so the far side is not a hole.
+    /// Stands a wall-sized piece centred on a cell boundary, textured face toward the cell.
     ///
     /// The piece spans 5 units along its own -X from a pivot at one end, so centring means
-    /// offsetting half a cell along its right vector. The mirror's right vector points the other
-    /// way, which is why it offsets in the opposite direction rather than reusing the position.
+    /// offsetting half a cell along its right vector.
+    ///
+    /// It deliberately does NOT spawn a mirrored copy. The mesh is 0.43 thick centred slightly
+    /// off the pivot plane, so a 180-degree copy interpenetrates the original and its blank back
+    /// plane renders in front of the textured face. Walls are instead placed per open cell, which
+    /// already puts a textured face on whichever side you can stand.
     /// </summary>
     void SpawnWallPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
     {
         Vector3 right = rotation * Vector3.right;
         Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
-
-        if (!doubleSidedWalls) return;
-
-        Quaternion mirrored = rotation * Quaternion.Euler(0f, 180f, 0f);
-        Spawn(prefab, boundary - right * HalfWorldUnit, mirrored);
     }
 
     /// <summary>
