@@ -170,9 +170,18 @@ public class Generator3D : MonoBehaviour
         public int XDir;
         public int ZDir;
 
-        /// <summary>The two cells this run joins, for connectivity purposes.</summary>
+        /// <summary>Floor cell at the foot of the run.</summary>
         public Vector3Int Lower => Prev;
-        public Vector3Int Upper => Prev + Vertical + Horizontal * 3;
+
+        /// <summary>
+        /// Last ramp cell. The pathfinder steps two cells horizontally and one vertically, and
+        /// marks prev+h, prev+2h, prev+v+h and prev+v+2h - so this is the fourth of those, not
+        /// a third step along. Getting it wrong walls off the actual top landing.
+        /// </summary>
+        public Vector3Int Upper => Prev + Vertical + Horizontal * 2;
+
+        /// <summary>Floor cell the run arrives at, one step beyond the last ramp cell.</summary>
+        public Vector3Int Landing => Prev + Vertical + Horizontal * 3;
     }
 
     readonly List<StairRun> stairRuns = new List<StairRun>();
@@ -384,6 +393,8 @@ public class Generator3D : MonoBehaviour
         {
             AddLink(stairLinks, run.Lower, run.Upper);
             AddLink(stairLinks, run.Upper, run.Lower);
+            AddLink(stairLinks, run.Upper, run.Landing);
+            AddLink(stairLinks, run.Landing, run.Upper);
 
             // The ramp cells themselves sit between the two ends.
             Vector3Int a = run.Prev + run.Horizontal;
@@ -435,7 +446,7 @@ public class Generator3D : MonoBehaviour
         int before = rooms.Count;
         rooms.RemoveAll(room => !RoomHasReachableFloor(room, reachable));
 
-        stairRuns.RemoveAll(run => !reachable.Contains(run.Lower) || !reachable.Contains(run.Upper));
+        stairRuns.RemoveAll(run => !reachable.Contains(run.Lower) && !reachable.Contains(run.Upper));
         doorways.RemoveAll(d => !reachable.Contains(d.cell) || !reachable.Contains(d.cell + d.dir));
 
         return before - rooms.Count;
@@ -508,9 +519,15 @@ public class Generator3D : MonoBehaviour
             stairMouths.Add((run.Lower, h));
             stairMouths.Add((run.Lower + h, -h));
 
-            // Top of the run: the last ramp cell steps onto the upper floor.
-            stairMouths.Add((run.Upper, -h));
+            // Between the two ramp cells on each level.
+            stairMouths.Add((run.Lower + h, h));
+            stairMouths.Add((run.Lower + h * 2, -h));
             stairMouths.Add((run.Upper - h, h));
+            stairMouths.Add((run.Upper, -h));
+
+            // Top of the run: the last ramp cell steps onto the landing.
+            stairMouths.Add((run.Upper, h));
+            stairMouths.Add((run.Landing, -h));
         }
     }
 
@@ -653,8 +670,9 @@ public class Generator3D : MonoBehaviour
                 if (!enclose && !guard && !flank) continue;
 
                 // A guard wall is seen from both sides, so it needs a mesh with faces on both.
-                // Guards and flanks are seen from both sides, so they need a two-sided mesh.
-                bool seenBothSides = guard || (flank && !enclose);
+                // Guards and flanks are seen from both sides. A stairwell flank especially: the
+                // ramp climbs past it, so it is looked at from above, below and alongside.
+                bool seenBothSides = guard || flank;
 
                 GameObject prefab = seenBothSides && doubleSidedWallPrefab != null
                     ? doubleSidedWallPrefab
@@ -1320,6 +1338,21 @@ public class Generator3D : MonoBehaviour
 
         GameObject leaf = Spawn(prefab, hinge, leafRotation);
         if (leaf == null) return;
+
+        // Synty's leaves are cut for a narrower frame than these wall pieces, so widen them to
+        // span the opening. Width only - scaling height too would push the leaf through the lintel.
+        MeshRenderer leafRenderer = prefab.GetComponentInChildren<MeshRenderer>();
+        if (leafRenderer != null)
+        {
+            float leafWidth = leafRenderer.bounds.size.x;
+            if (leafWidth > 0.01f)
+            {
+                float wanted = doorHingeOffset * 2f;
+                Vector3 scale = leaf.transform.localScale;
+                scale.x *= wanted / leafWidth;
+                leaf.transform.localScale = scale;
+            }
+        }
 
         var door = leaf.AddComponent<Delver.Dungeon.DungeonDoor>();
         door.SwingSign = hingeRight ? 1f : -1f;
