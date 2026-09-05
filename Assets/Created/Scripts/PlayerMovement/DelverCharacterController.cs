@@ -108,6 +108,9 @@ namespace Delver.Movement
         private Vector3 _lookInput;
         private bool _jumpRequested;
         private bool _jumpConsumed;
+
+        /// <summary>Raised on take-off, lowered on landing. Drives the animator's Jump bool.</summary>
+        private bool _jumpedThisFrame;
         private float _timeSinceJumpRequested = Mathf.Infinity;
         private float _timeSinceGrounded;
         private bool _wantsCrouch;
@@ -327,9 +330,7 @@ namespace Delver.Movement
 
             _jumpRequested = false;
             _jumpConsumed = true;
-
-            if (ThirdPersonAnimator != null) ThirdPersonAnimator.SetTrigger("Jump");
-            if (FirstPersonAnimator != null) FirstPersonAnimator.SetTrigger("Jump");
+            _jumpedThisFrame = true;
         }
 
         public void AfterCharacterUpdate(float deltaTime)
@@ -338,6 +339,10 @@ namespace Delver.Movement
             {
                 _timeSinceGrounded = 0f;
                 _jumpConsumed = false;
+
+                // Jump stays raised for the whole airborne phase and drops on landing, which is
+                // the shape the StarterAssets state machine expects.
+                _jumpedThisFrame = false;
             }
             else
             {
@@ -399,9 +404,16 @@ namespace Delver.Movement
         {
             if (animator == null || !animator.isActiveAndEnabled) return;
 
+            bool grounded = Motor.GroundingStatus.IsStableOnGround;
+
             animator.SetFloat("Speed", speed);
             animator.SetFloat("MotionSpeed", 1f);
-            animator.SetBool("Grounded", Motor.GroundingStatus.IsStableOnGround);
+            animator.SetBool("Grounded", grounded);
+
+            // The StarterAssets controller declares Jump and FreeFall as bools, not triggers -
+            // SetTrigger on a bool silently does nothing, which is why the jump never animated.
+            animator.SetBool("Jump", _jumpedThisFrame);
+            animator.SetBool("FreeFall", !grounded && Vector3.Dot(Motor.Velocity, Motor.CharacterUp) < 0f);
         }
 
         public bool IsColliderValidForCollisions(Collider coll)

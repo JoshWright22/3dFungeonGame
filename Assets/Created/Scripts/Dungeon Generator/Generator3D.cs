@@ -33,6 +33,12 @@ public class Generator3D : MonoBehaviour
         }
     }
 
+    [Header("Profile")]
+    [Tooltip("Assign a DungeonProfile to drive generation from one asset. Leave empty to use the inline fields below.")]
+    [SerializeField]
+    Delver.Dungeon.DungeonProfile profile;
+
+    [Header("Inline settings (used when no profile is assigned)")]
     [SerializeField]
     Vector3Int size;
     [SerializeField]
@@ -57,6 +63,15 @@ public class Generator3D : MonoBehaviour
     [Tooltip("Generate on Start. Turn OFF for networked play - DungeonRunner drives generation from the host's seed instead.")]
     [SerializeField]
     bool generateOnStart = true;
+
+    [Tooltip("Smallest room, in cells.")]
+    [SerializeField]
+    Vector3Int roomMinSize = new Vector3Int(3, 1, 3);
+
+    [Tooltip("Cells of solid rock kept between rooms.")]
+    [Range(0, 4)]
+    [SerializeField]
+    int roomSeparation = 1;
 
     [Header("Shape")]
     [Tooltip("Extra attempts allowed while trying to satisfy roomCount. Rooms are placed by rejection sampling, so without a retry budget a dense layout silently ends up with far fewer rooms than asked for.")]
@@ -137,8 +152,16 @@ public class Generator3D : MonoBehaviour
     private const float WorldUnitSize = 5f;
     private const float HalfWorldUnit = WorldUnitSize / 2f; // 2.5f - This is the fixed vertical center
 
-    // Offset for the X and Z axes, calculated from the cubePrefab's horizontal size
-    private float CubeCenterXZOffset;
+    // Two different things that were previously conflated into one number:
+    //
+    //  * FloorPivotOffset - where a floor tile's PIVOT must go for its geometry to fill the cell.
+    //    Synty tiles pivot at their +X/-Z corner, so this is (5, _, 0), not (2.5, _, 2.5).
+    //  * CellCentre       - the middle of the cell, which is always half a cell in from the
+    //    corner regardless of any prefab's pivot.
+    //
+    // Walls, doorways, stairs and torches all want the cell centre. Feeding them the tile's
+    // pivot offset is what pushed them half a cell out of alignment.
+    private Vector3 FloorPivotOffset;
 
     // Vertical offsets calculated from the prefab's mesh bounds (used for non-cubes or where floor alignment is key)
     private float DoorFloorOffset;
@@ -174,6 +197,8 @@ public class Generator3D : MonoBehaviour
     {
         CurrentSeed = dungeonSeed;
 
+        ApplyProfile();
+
         // Every spawned tile is parented to this, so regenerating is one destroy rather than a
         // second dungeon standing inside the first.
         ClearDungeon();
@@ -203,6 +228,44 @@ public class Generator3D : MonoBehaviour
         ChooseEntry();
 
         Debug.Log($"Dungeon generated from seed {dungeonSeed} ({rooms.Count} rooms, spawn {PartySpawnPoint}).", this);
+    }
+
+    /// <summary>
+    /// Copies the assigned profile over the inline fields. Everything downstream keeps reading
+    /// the same fields, so a profile is a source of settings rather than a second code path.
+    /// </summary>
+    void ApplyProfile()
+    {
+        if (profile == null) return;
+
+        if (!profile.IsUsable(out string problem))
+        {
+            Debug.LogError($"DungeonProfile '{profile.name}' is not usable: {problem} Falling back to inline settings.", this);
+            return;
+        }
+
+        size = profile.gridSize;
+        roomCount = profile.roomCount;
+        roomPlacementAttemptsPerRoom = profile.placementAttemptsPerRoom;
+        roomMinSize = profile.roomMinSize;
+        roomMaxSize = profile.roomMaxSize;
+        roomSeparation = profile.roomSeparation;
+        loopEdgeChance = profile.loopEdgeChance;
+
+        floorPrefabs = profile.floorPrefabs;
+        wallPrefabs = profile.wallPrefabs;
+        doorPrefabs = profile.doorPrefabs;
+        torchPrefabs = profile.torchPrefabs;
+        ceilingPrefab = profile.ceilingPrefab;
+
+        if (profile.stairPrefab != null) stairPrefab = profile.stairPrefab;
+
+        wallYNudge = profile.wallYNudge;
+        makeDoorwaysPassable = profile.makeDoorwaysPassable;
+        torchChancePerWall = profile.torchChancePerWall;
+        torchMinSpacing = profile.torchMinSpacing;
+
+        Debug.Log($"Dungeon profile '{profile.profileName}' applied.", this);
     }
 
     /// <summary>Destroys everything the previous generation spawned and starts a fresh container.</summary>
@@ -263,7 +326,7 @@ public class Generator3D : MonoBehaviour
             bounds.position.z + (bounds.size.z - 1) * 0.5f);
 
         Vector3 predicted = centreCell * WorldUnitSize
-            + new Vector3(CubeCenterXZOffset, FloorSurfaceOffset, CubeCenterXZOffset);
+            + new Vector3(HalfWorldUnit, FloorSurfaceOffset, HalfWorldUnit);
 
         PartySpawnPoint = predicted + new Vector3(0f, 0.15f, 0f);
 
@@ -314,8 +377,7 @@ public class Generator3D : MonoBehaviour
 
             if (!IsWalkable(here)) continue;
 
-            Vector3 cellCentre = (Vector3)cell * WorldUnitSize
-                + new Vector3(CubeCenterXZOffset, 0f, CubeCenterXZOffset);
+            Vector3 cellCentre = CellCentre(cell);
 
             foreach (Vector3Int dir in Directions)
             {
@@ -433,8 +495,8 @@ public class Generator3D : MonoBehaviour
             return renderer.bounds.extents.x;
         }
 
-        // Calculate horizontal offset for the cube (used for X/Z centering)
-        CubeCenterXZOffset = GetHorizontalCenterOffset(cubePrefab);
+        // Horizontal offsets come from the tile that actually gets spawned.
+        FloorPivotOffset = PivotOffsetFor(RepresentativeFloorPrefab());
 
         // A tile is instantiated with its pivot at (gridLine + HalfWorldUnit). Its walkable
         // surface is the top of its COLLIDER - the renderer's bounds are a few centimetres
@@ -446,7 +508,29 @@ public class Generator3D : MonoBehaviour
         StairFloorOffset = GetFloorOffset(stairPrefab);
 
         if (drawHallwayGizmos)
-            Debug.Log($"Calculated Offsets: Cube XZ Center={CubeCenterXZOffset}, Door Y={DoorFloorOffset}, Stair Y={StairFloorOffset}");
+            Debug.Log($"Offsets: floor pivot={FloorPivotOffset}, floor surface={FloorSurfaceOffset}, door Y={DoorFloorOffset}");
+    }
+
+    /// <summary>
+    /// Where a prefab's pivot must sit, relative to a cell's grid corner, for its geometry to
+    /// land centred in that cell. Solves pivot + localCentre = HalfWorldUnit on each horizontal
+    /// axis, so it is correct whatever corner the artist put the pivot on.
+    /// </summary>
+    Vector3 PivotOffsetFor(GameObject prefab)
+    {
+        if (prefab == null) return new Vector3(HalfWorldUnit, 0f, HalfWorldUnit);
+
+        MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
+        if (renderer == null) return new Vector3(HalfWorldUnit, 0f, HalfWorldUnit);
+
+        Bounds b = renderer.bounds;
+        return new Vector3(HalfWorldUnit - b.center.x, 0f, HalfWorldUnit - b.center.z);
+    }
+
+    /// <summary>World-space centre of a grid cell, at its floor line (y before floor thickness).</summary>
+    Vector3 CellCentre(Vector3Int cell)
+    {
+        return (Vector3)cell * WorldUnitSize + new Vector3(HalfWorldUnit, 0f, HalfWorldUnit);
     }
 
     /// <summary>
@@ -524,15 +608,17 @@ public class Generator3D : MonoBehaviour
             );
 
             Vector3Int roomSize = new Vector3Int(
-                random.Next(1, roomMaxSize.x + 1),
-                random.Next(1, roomMaxSize.y + 1),
-                random.Next(1, roomMaxSize.z + 1)
+                random.Next(Mathf.Max(1, roomMinSize.x), roomMaxSize.x + 1),
+                random.Next(Mathf.Max(1, roomMinSize.y), roomMaxSize.y + 1),
+                random.Next(Mathf.Max(1, roomMinSize.z), roomMaxSize.z + 1)
             );
 
             bool add = true;
             Room newRoom = new Room(location, roomSize);
-            // This buffer is critical for ensuring space between rooms in grid units
-            Room buffer = new Room(location + new Vector3Int(-1, 0, -1), roomSize + new Vector3Int(2, 0, 2));
+            // Rock kept between rooms. Without it rooms fuse into one cave and the dungeon
+            // stops reading as a set of chambers.
+            int sep = Mathf.Max(0, roomSeparation);
+            Room buffer = new Room(location + new Vector3Int(-sep, 0, -sep), roomSize + new Vector3Int(sep * 2, 0, sep * 2));
 
             foreach (var room in rooms)
             {
@@ -771,11 +857,15 @@ public class Generator3D : MonoBehaviour
     // Helper method to instantiate a single 1x1x1 cube (for a 5x5x5 cell)
     void InstantiateCellObject(Vector3Int location)
     {
-        // ⭐ X and Z use the dynamic offset based on the prefab's width/depth (CubeCenterXZOffset).
-        // ⭐ Y is reverted to the fixed center of the 5-unit cell (HalfWorldUnit = 2.5).
-        Vector3 worldCenter = (Vector3)location * WorldUnitSize + new Vector3(CubeCenterXZOffset, HalfWorldUnit, CubeCenterXZOffset);
+        GameObject prefab = FloorPrefab();
 
-        Spawn(FloorPrefab(), worldCenter, Quaternion.identity);
+        // Pivot offset is per-variant: a tile whose pivot sits on a different corner still has
+        // to land filling the same cell.
+        Vector3 pivot = PivotOffsetFor(prefab);
+        Vector3 worldPosition = (Vector3)location * WorldUnitSize
+            + new Vector3(pivot.x, HalfWorldUnit, pivot.z);
+
+        Spawn(prefab, worldPosition, Quaternion.identity);
     }
 
     /// <summary>
@@ -815,14 +905,17 @@ public class Generator3D : MonoBehaviour
         // The half-step height (2.5 units) in the world
         float halfStepHeight = WorldUnitSize / 2f;
 
-        // 1. Calculate World Center of the Grid Cells
-        // X and Z center is determined by the cube prefab's offset (CubeCenterXZOffset).
-        // Y center is determined by the stair prefab's offset (StairFloorOffset).
+        // The stair mesh has its own pivot corner (-X/+Z), distinct from both the floor tile's
+        // and the cell centre, so it gets its own offset. Vertically it stands on the floor
+        // surface like everything else rather than on a mesh-extent guess.
+        Vector3 stairPivot = PivotOffsetFor(stairPrefab);
+        Vector3 pivotOffset = new Vector3(stairPivot.x, FloorSurfaceOffset, stairPivot.z);
+
         Vector3 gridStairOne = prev + horizontalOffset;
-        Vector3 stairOneWorldCenter = gridStairOne * WorldUnitSize + new Vector3(CubeCenterXZOffset, StairFloorOffset, CubeCenterXZOffset);
+        Vector3 stairOneWorldCenter = gridStairOne * WorldUnitSize + pivotOffset;
 
         Vector3 gridStairFour = prev + horizontalOffset * 2 + verticalOffset;
-        Vector3 stairFourWorldCenter = gridStairFour * WorldUnitSize + new Vector3(CubeCenterXZOffset, StairFloorOffset, CubeCenterXZOffset);
+        Vector3 stairFourWorldCenter = gridStairFour * WorldUnitSize + pivotOffset;
 
         // The direction for rotation
         Vector3 direction = new Vector3(xDir * -1f, 0, zDir * -1f);
@@ -857,8 +950,7 @@ public class Generator3D : MonoBehaviour
     /// </summary>
     void PlaceDoor(Vector3Int location, Quaternion unusedRotation, Vector3Int offset)
     {
-        Vector3 cellCentre = (Vector3)location * WorldUnitSize
-            + new Vector3(CubeCenterXZOffset, 0f, CubeCenterXZOffset);
+        Vector3 cellCentre = CellCentre(location);
 
         Vector3 outward = new Vector3(offset.x, 0f, offset.z);
         Vector3 boundary = cellCentre + outward * HalfWorldUnit

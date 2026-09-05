@@ -2882,6 +2882,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d00a4c74cad43e47b83fb94606bc47e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: a4022d0d281e00b4b9977bf3c1758b54, type: 2}
   size: {x: 48, y: 3, z: 48}
   roomCount: 26
   roomMaxSize: {x: 8, y: 2, z: 8}
@@ -2891,6 +2892,8 @@ MonoBehaviour:
   seed: 0
   randomizeSeedOnStart: 0
   generateOnStart: 0
+  roomMinSize: {x: 3, y: 1, z: 3}
+  roomSeparation: 1
   roomPlacementAttemptsPerRoom: 12
   loopEdgeChance: 0.16
   floorPrefabs:
