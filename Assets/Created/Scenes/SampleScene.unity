@@ -1007,6 +1007,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1143,6 +1144,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1849,6 +1851,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -2460,14 +2463,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -2866,12 +2869,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d00a4c74cad43e47b83fb94606bc47e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 60, y: 4, z: 60}
-  roomCount: 75
-  roomMaxSize: {x: 12, y: 3, z: 12}
+  size: {x: 48, y: 3, z: 48}
+  roomCount: 26
+  roomMaxSize: {x: 8, y: 2, z: 8}
   cubePrefab: {fileID: 4574230142376224963, guid: 310277bc4c75bd447b5c1f6ab7618bad, type: 3}
   doorPrefab: {fileID: 1478153578549848360, guid: 7733dfa9a4c460e4394a31f2af92c8c9, type: 3}
   stairPrefab: {fileID: 3500689537769372386, guid: 2582c33b12da59b4abeb2677f4b2ba1e, type: 3}
+  seed: 0
+  randomizeSeedOnStart: 0
+  generateOnStart: 0
+  roomPlacementAttemptsPerRoom: 12
+  loopEdgeChance: 0.16
+  wallPrefabs:
+  - {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
+  - {fileID: 196870, guid: d3ce5fe83b1090246a3572735e3dd832, type: 3}
+  - {fileID: 189982, guid: a475e72db2f78ba41b557ca01e7ed990, type: 3}
+  ceilingPrefab: {fileID: 0}
+  wallYNudge: 0
+  drawHallwayGizmos: 0
 --- !u!4 &801771303
 Transform:
   m_ObjectHideFlags: 0
@@ -3497,6 +3512,120 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3bf01e09059dad54b985779213d8dca8, type: 3}
+--- !u!1 &987576883
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 987576885}
+  - component: {fileID: 987576884}
+  - component: {fileID: 987576887}
+  - component: {fileID: 987576886}
+  - component: {fileID: 987576888}
+  m_Layer: 0
+  m_Name: RunManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &987576884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987576883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 100068148
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!4 &987576885
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987576883}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &987576886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987576883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d46bd2c91125db489c5513a23b1e4f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.GameBootstrap
+  autoHost: 1
+  autoHostDelayFrames: 2
+  autoBeginDescent: 1
+  spawnLobbyScreen: 1
+  spawnCharacterSheet: 1
+  autoHostCreatesSteamLobby: 0
+  maxPartySize: 4
+  legacyMenuCanvas: {fileID: 1766789559}
+--- !u!114 &987576887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987576883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 910735111d1c5054c923ba4ba421d4ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.DungeonRunner
+  ShowTopMostFoldoutHeaderGroup: 1
+  generator: {fileID: 801771302}
+  debugSeed: 0
+  spawnScatterRadius: 3
+--- !u!114 &987576888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987576883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eec9ba9a65d24104892cd8c5253db7ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.DungeonAtmosphere
+  ambient: {r: 0.02, g: 0.022, b: 0.028, a: 1}
+  useFog: 1
+  fogColor: {r: 0.015, g: 0.016, b: 0.02, a: 1}
+  fogStart: 6
+  fogEnd: 34
+  killDirectionalLights: 1
 --- !u!1 &993578750
 GameObject:
   m_ObjectHideFlags: 0
@@ -6370,6 +6499,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -8063,3 +8193,4 @@ SceneRoots:
   - {fileID: 1036874710}
   - {fileID: 1432764128}
   - {fileID: 1744138207}
+  - {fileID: 987576885}

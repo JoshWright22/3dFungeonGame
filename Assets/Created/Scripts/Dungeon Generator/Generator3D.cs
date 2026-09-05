@@ -54,7 +54,49 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     bool randomizeSeedOnStart = false;
 
+    [Tooltip("Generate on Start. Turn OFF for networked play - DungeonRunner drives generation from the host's seed instead.")]
+    [SerializeField]
+    bool generateOnStart = true;
+
+    [Header("Shape")]
+    [Tooltip("Extra attempts allowed while trying to satisfy roomCount. Rooms are placed by rejection sampling, so without a retry budget a dense layout silently ends up with far fewer rooms than asked for.")]
+    [SerializeField]
+    int roomPlacementAttemptsPerRoom = 12;
+
+    [Tooltip("Fraction of the non-MST Delaunay edges added back as loops. 0 is a pure tree you can always back out of; higher values make the dungeon a place you can get lost in.")]
+    [Range(0f, 1f)]
+    [SerializeField]
+    float loopEdgeChance = 0.125f;
+
+    [Header("Walls")]
+    [Tooltip("Wall segments sealing the edge of any walkable cell that borders solid rock. One is picked at random per edge, so give it several variants for texture.")]
+    [SerializeField]
+    GameObject[] wallPrefabs;
+
+    [Tooltip("Optional ceiling piece placed over every walkable cell. Roughly doubles the object count - leave empty while iterating on layout.")]
+    [SerializeField]
+    GameObject ceilingPrefab;
+
+    [Tooltip("Nudge walls vertically if they float or sink relative to the floor tiles.")]
+    [SerializeField]
+    float wallYNudge = 0f;
+
+    [Header("Debug")]
+    [SerializeField]
+    bool drawHallwayGizmos = false;
+
     public int CurrentSeed { get; private set; }
+
+    /// <summary>Everything this generator spawned, so a regenerate can clear it in one destroy.</summary>
+    Transform dungeonRoot;
+
+    Room entryRoom;
+
+    /// <summary>World-space point on the entry room's floor. Where the party arrives.</summary>
+    public Vector3 PartySpawnPoint { get; private set; }
+
+    /// <summary>Rooms produced by the last generation, in placement order.</summary>
+    public int RoomCount => rooms != null ? rooms.Count : 0;
 
     Random random;
     Grid3D<CellType> grid;
@@ -74,6 +116,13 @@ public class Generator3D : MonoBehaviour
     private float DoorFloorOffset;
     private float StairFloorOffset;
 
+    /// <summary>
+    /// Height of the walkable surface above a cell's grid line, derived from the floor tile's own
+    /// geometry. Everything that stands on the floor - walls, ceilings, the party - is placed
+    /// from this rather than from a guessed constant, so nothing sinks into the ground.
+    /// </summary>
+    private float FloorSurfaceOffset;
+
     static readonly Vector3Int[] Directions = new Vector3Int[]
     {
         Vector3Int.right,
@@ -84,6 +133,8 @@ public class Generator3D : MonoBehaviour
 
     void Start()
     {
+        if (!generateOnStart) return;
+
         Generate(randomizeSeedOnStart ? UnityEngine.Random.Range(int.MinValue, int.MaxValue) : seed);
     }
 
@@ -95,6 +146,10 @@ public class Generator3D : MonoBehaviour
     {
         CurrentSeed = dungeonSeed;
 
+        // Every spawned tile is parented to this, so regenerating is one destroy rather than a
+        // second dungeon standing inside the first.
+        ClearDungeon();
+
         // Calculate the offsets based on the prefab's actual geometry
         CalculateComponentOffsets();
 
@@ -102,13 +157,181 @@ public class Generator3D : MonoBehaviour
         grid = new Grid3D<CellType>(size, Vector3Int.zero);
         rooms = new List<Room>();
         placedHallways.Clear();
+        entryRoom = null;
 
         PlaceRooms();
+
+        if (rooms.Count < 2)
+        {
+            Debug.LogError($"Dungeon seed {dungeonSeed} produced {rooms.Count} room(s) - not enough to connect. Check size / roomCount / roomMaxSize.", this);
+            return;
+        }
+
         Triangulate();
         CreateHallways();
         PathfindHallways();
+        PlaceWalls();
+        ChooseEntry();
 
-        Debug.Log($"Dungeon generated from seed {dungeonSeed} ({rooms.Count} rooms).", this);
+        Debug.Log($"Dungeon generated from seed {dungeonSeed} ({rooms.Count} rooms, spawn {PartySpawnPoint}).", this);
+    }
+
+    /// <summary>Destroys everything the previous generation spawned and starts a fresh container.</summary>
+    void ClearDungeon()
+    {
+        if (dungeonRoot != null)
+        {
+            if (Application.isPlaying) Destroy(dungeonRoot.gameObject);
+            else DestroyImmediate(dungeonRoot.gameObject);
+        }
+
+        var go = new GameObject("Dungeon");
+        go.transform.SetParent(transform, false);
+        dungeonRoot = go.transform;
+    }
+
+    /// <summary>Instantiates under the dungeon container so <see cref="ClearDungeon"/> can reclaim it.</summary>
+    GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        if (prefab == null) return null;
+        return Instantiate(prefab, position, rotation, dungeonRoot);
+    }
+
+    /// <summary>
+    /// Picks the room the party arrives in: the lowest, largest room, which is the one most
+    /// likely to have space for four delvers and a way onward.
+    /// </summary>
+    void ChooseEntry()
+    {
+        entryRoom = null;
+        int bestScore = int.MinValue;
+
+        foreach (var room in rooms)
+        {
+            var b = room.bounds;
+            int footprint = b.size.x * b.size.z;
+
+            // Prefer low, then large. Depth dominates so the party never starts on a top floor.
+            int score = (-b.position.y * 1000) + footprint;
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                entryRoom = room;
+            }
+        }
+
+        if (entryRoom == null)
+        {
+            PartySpawnPoint = Vector3.zero;
+            return;
+        }
+
+        var bounds = entryRoom.bounds;
+        Vector3 centreCell = new Vector3(
+            bounds.position.x + (bounds.size.x - 1) * 0.5f,
+            bounds.position.y,
+            bounds.position.z + (bounds.size.z - 1) * 0.5f);
+
+        // Sit the party on the floor of that cell, not at its volumetric centre.
+        PartySpawnPoint = centreCell * WorldUnitSize
+            + new Vector3(CubeCenterXZOffset, FloorSurfaceOffset + 0.25f, CubeCenterXZOffset);
+    }
+
+    /// <summary>Cells a delver can actually stand in.</summary>
+    bool IsWalkable(CellType t)
+    {
+        return t == CellType.Room || t == CellType.BottomFloorRoom
+            || t == CellType.Hallway || t == CellType.Stairs;
+    }
+
+    /// <summary>
+    /// Seals the dungeon. Any walkable cell that borders solid rock gets a wall on that edge,
+    /// which is what turns a field of floor tiles into rooms and corridors you cannot see across.
+    /// </summary>
+    void PlaceWalls()
+    {
+        if (wallPrefabs == null || wallPrefabs.Length == 0)
+        {
+            Debug.LogWarning("Generator3D: no wall prefabs assigned - the dungeon will generate as open floor.", this);
+            return;
+        }
+
+        // Walls pivot at their own base, so they simply sit on the floor surface.
+        float wallFloorOffset = FloorSurfaceOffset + wallYNudge;
+        float ceilingOffset = FloorSurfaceOffset;
+
+        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < size.y; y++)
+        for (int z = 0; z < size.z; z++)
+        {
+            var cell = new Vector3Int(x, y, z);
+            CellType here = grid[cell];
+
+            if (!IsWalkable(here)) continue;
+
+            // Stairs cut through the grid diagonally; walling them off would seal the route.
+            if (here == CellType.Stairs) continue;
+
+            Vector3 cellCentre = (Vector3)cell * WorldUnitSize
+                + new Vector3(CubeCenterXZOffset, 0f, CubeCenterXZOffset);
+
+            foreach (Vector3Int dir in Directions)
+            {
+                Vector3Int neighbour = cell + dir;
+
+                bool solid = !grid.InBounds(neighbour) || !IsWalkable(grid[neighbour]);
+                if (!solid) continue;
+
+                // Never wall a cell off from a staircase landing.
+                if (grid.InBounds(neighbour) && grid[neighbour] == CellType.Stairs) continue;
+
+                PlaceWall(cellCentre, dir, wallFloorOffset);
+            }
+
+            if (ceilingPrefab != null)
+            {
+                Vector3Int above = cell + Vector3Int.up;
+                bool openAbove = grid.InBounds(above) && IsWalkable(grid[above]);
+
+                if (!openAbove)
+                {
+                    Vector3 pos = cellCentre + new Vector3(0f, WorldUnitSize + ceilingOffset, 0f);
+                    Spawn(ceilingPrefab, pos, Quaternion.identity);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stands one wall segment on the boundary between a cell and the rock beside it.
+    ///
+    /// The Synty wall meshes pivot at floor level on one end and run 5 units along their local
+    /// -X, so the piece is pushed half a cell along its own right vector to sit centred on the
+    /// edge rather than hanging off it.
+    /// </summary>
+    void PlaceWall(Vector3 cellCentre, Vector3Int dir, float floorOffset)
+    {
+        GameObject prefab = wallPrefabs[random.Next(wallPrefabs.Length)];
+        if (prefab == null) return;
+
+        Vector3 outward = new Vector3(dir.x, 0f, dir.z);
+        Vector3 boundary = cellCentre + outward * HalfWorldUnit + new Vector3(0f, floorOffset, 0f);
+
+        // Face the wall back into the room it encloses.
+        Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
+        Vector3 right = rotation * Vector3.right;
+
+        Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
+    }
+
+    /// <summary>Distance from a prefab's pivot to the bottom of its geometry.</summary>
+    float GetPrefabFloorOffset(GameObject prefab)
+    {
+        if (prefab == null) return HalfWorldUnit;
+
+        MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
+        return renderer == null ? HalfWorldUnit : renderer.bounds.extents.y;
     }
 
     // Combined offset calculation method
@@ -142,17 +365,41 @@ public class Generator3D : MonoBehaviour
         // Calculate horizontal offset for the cube (used for X/Z centering)
         CubeCenterXZOffset = GetHorizontalCenterOffset(cubePrefab);
 
+        // A tile is instantiated with its pivot at (gridLine + HalfWorldUnit). Its walkable
+        // surface is wherever the top of its geometry sits relative to that pivot.
+        FloorSurfaceOffset = HalfWorldUnit + GetTopOffset(cubePrefab);
+
         // Door and Stair Prefabs only need the vertical offset to sit on the floor
         DoorFloorOffset = GetFloorOffset(doorPrefab);
         StairFloorOffset = GetFloorOffset(stairPrefab);
 
-        Debug.Log($"Calculated Offsets: Cube XZ Center={CubeCenterXZOffset}, Door Y={DoorFloorOffset}, Stair Y={StairFloorOffset}");
+        if (drawHallwayGizmos)
+            Debug.Log($"Calculated Offsets: Cube XZ Center={CubeCenterXZOffset}, Door Y={DoorFloorOffset}, Stair Y={StairFloorOffset}");
+    }
+
+    /// <summary>Distance from a prefab's pivot up to the top of its geometry.</summary>
+    float GetTopOffset(GameObject prefab)
+    {
+        if (prefab == null) return 0f;
+
+        MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
+        if (renderer == null) return 0f;
+
+        return renderer.bounds.center.y + renderer.bounds.extents.y;
     }
 
     void PlaceRooms()
     {
-        for (int i = 0; i < roomCount; i++)
+        int attempts = 0;
+        int maxAttempts = roomCount * Mathf.Max(1, roomPlacementAttemptsPerRoom);
+
+        // Rejection sampling: keep trying until roomCount rooms fit or the budget runs out.
+        // The original loop ran exactly roomCount times, so every rejected candidate was a room
+        // the dungeon simply never got.
+        while (rooms.Count < roomCount && attempts < maxAttempts)
         {
+            attempts++;
+
             Vector3Int location = new Vector3Int(
                 random.Next(0, size.x),
                 random.Next(0, size.y),
@@ -205,6 +452,11 @@ public class Generator3D : MonoBehaviour
                 }
             }
         }
+
+        if (rooms.Count < roomCount)
+        {
+            Debug.LogWarning($"Placed {rooms.Count}/{roomCount} rooms in {attempts} attempts. The grid is too small or the rooms too large for the requested count.", this);
+        }
     }
 
     void Triangulate()
@@ -236,7 +488,7 @@ public class Generator3D : MonoBehaviour
 
         foreach (var edge in remainingEdges)
         {
-            if (random.NextDouble() < 0.125)
+            if (random.NextDouble() < loopEdgeChance)
             {
                 selectedEdges.Add(edge);
             }
@@ -365,7 +617,8 @@ public class Generator3D : MonoBehaviour
 
                         }
 
-                        Debug.DrawLine(prev + new Vector3(0.5f, 0.5f, 0.5f), current + new Vector3(0.5f, 0.5f, 0.5f), Color.blue, 100, false);
+                        if (drawHallwayGizmos)
+                            Debug.DrawLine(prev + new Vector3(0.5f, 0.5f, 0.5f), current + new Vector3(0.5f, 0.5f, 0.5f), Color.blue, 100, false);
                     }
                 }
 
@@ -383,6 +636,8 @@ public class Generator3D : MonoBehaviour
                             PlaceHallway(pos);
                             foreach (Vector3Int direction in Directions)
                             {
+                                if (!grid.InBounds(pos + direction)) continue;
+
                                 if (grid[pos + direction] == CellType.BottomFloorRoom)
                                 {
                                     PlaceDoor(pos, Quaternion.LookRotation(direction, Vector3.up), direction);
@@ -403,7 +658,7 @@ public class Generator3D : MonoBehaviour
         // ⭐ Y is reverted to the fixed center of the 5-unit cell (HalfWorldUnit = 2.5).
         Vector3 worldCenter = (Vector3)location * WorldUnitSize + new Vector3(CubeCenterXZOffset, HalfWorldUnit, CubeCenterXZOffset);
 
-        Instantiate(cubePrefab, worldCenter, Quaternion.identity);
+        Spawn(cubePrefab, worldCenter, Quaternion.identity);
     }
 
     /// <summary>
@@ -458,20 +713,20 @@ public class Generator3D : MonoBehaviour
         if (delta.y > 0) // Going up (from prev to current)
         {
             // Stair 1 (Lower step): Base of stair at Y=floor_level (Y=0). The pivot is at Y=StairFloorOffset.
-            Instantiate(stairPrefab, stairOneWorldCenter, Quaternion.LookRotation(direction * -1f, Vector3.up));
+            Spawn(stairPrefab, stairOneWorldCenter, Quaternion.LookRotation(direction * -1f, Vector3.up));
 
             // Stair 4 (Upper step): Base of stair at Y=WorldUnitSize (Y=5) + halfStepHeight (2.5). 
             // stairFourWorldCenter's Y is StairFloorOffset (Y=5 floor level). Add 2.5 for the ramp height.
-            Instantiate(stairPrefab, stairFourWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction * -1f, Vector3.up));
+            Spawn(stairPrefab, stairFourWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction * -1f, Vector3.up));
         }
         else if (delta.y < 0) // Going down (from prev to current)
         {
             // Stair 1 (Upper step): Base of stair at Y=WorldUnitSize (Y=5) + halfStepHeight (2.5). 
             // stairOneWorldCenter's Y is StairFloorOffset (Y=5 floor level). Add 2.5 for the ramp height.
-            Instantiate(stairPrefab, stairOneWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction, Vector3.up));
+            Spawn(stairPrefab, stairOneWorldCenter + new Vector3(0, halfStepHeight, 0), Quaternion.LookRotation(direction, Vector3.up));
 
             // Stair 4 (Lower step): Base of stair at Y=floor_level (Y=0). The pivot is at Y=StairFloorOffset.
-            Instantiate(stairPrefab, stairFourWorldCenter, Quaternion.LookRotation(direction, Vector3.up));
+            Spawn(stairPrefab, stairFourWorldCenter, Quaternion.LookRotation(direction, Vector3.up));
         }
     }
 
@@ -489,6 +744,6 @@ public class Generator3D : MonoBehaviour
         Vector3 doorPosition = worldCenter + (Vector3)offset * HalfWorldUnit;
 
         // The Y position is already correctly set to DoorFloorOffset (pivot is at floor level).
-        Instantiate(doorPrefab, doorPosition, rotation);
+        Spawn(doorPrefab, doorPosition, rotation);
     }
 }

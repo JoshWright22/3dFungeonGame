@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 8468422766228974299}
   - component: {fileID: 598314606711105334}
   - component: {fileID: 1643608845383068450}
-  - component: {fileID: 177012720458625623}
   m_Layer: 0
   m_Name: Arms
   m_TagString: Untagged
@@ -88,42 +87,6 @@ MonoBehaviour:
   LandingAudioClip: {fileID: 0}
   FootstepAudioClips: []
   FootstepAudioVolume: 0.5
---- !u!114 &177012720458625623
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1007711388967523713}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 0
-  AuthorityMode: 0
-  TickSyncChildren: 0
-  UseUnreliableDeltas: 0
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 1
-  SyncScaleY: 1
-  SyncScaleZ: 1
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
-  UseHalfFloatPrecision: 0
-  InLocalSpace: 0
-  SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
-  SlerpPosition: 0
 --- !u!1 &2840093267245784157
 GameObject:
   m_ObjectHideFlags: 0
@@ -133,14 +96,16 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 668551267999117398}
-  - component: {fileID: 1216015487606410938}
   - component: {fileID: 5092815830484377090}
   - component: {fileID: 5691889020450757420}
   - component: {fileID: 9196048432666291089}
-  - component: {fileID: 1816471262403363624}
-  - component: {fileID: 2638584984713973318}
   - component: {fileID: 6870988545597924809}
   - component: {fileID: 4828535022672715876}
+  - component: {fileID: 3607883945476143845}
+  - component: {fileID: 2850474858673589673}
+  - component: {fileID: 3205590549421505382}
+  - component: {fileID: 9218371891274323578}
+  - component: {fileID: 7067853664953475247}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -165,39 +130,6 @@ Transform:
   - {fileID: 3425980644171985541}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1216015487606410938
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2840093267245784157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76020eee813ed7844bcea94c5d5ce76a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Motor: {fileID: 5691889020450757420}
-  MaxStableMoveSpeed: 6
-  StableMovementSharpness: 9
-  OrientationSharpness: 10
-  OrientationMethod: 0
-  MaxAirMoveSpeed: 5
-  AirAccelerationSpeed: 9
-  Drag: 0.1
-  AllowJumpingWhenSliding: 0
-  JumpUpSpeed: 10
-  JumpScalableForwardSpeed: 0
-  JumpPreGroundingGraceTime: 0
-  JumpPostGroundingGraceTime: 0
-  IgnoredColliders: []
-  BonusOrientationMethod: 0
-  BonusOrientationSharpness: 10
-  Gravity: {x: 0, y: -30, z: 0}
-  MeshRoot: {fileID: 3016383535868980350}
-  CameraFollowPoint: {fileID: 7548582232985982842}
-  CrouchedCapsuleHeight: 1
-  FirstPersonAnimator: {fileID: 8468422766228974299}
 --- !u!136 &5092815830484377090
 CapsuleCollider:
   m_ObjectHideFlags: 8
@@ -288,57 +220,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &1816471262403363624
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2840093267245784157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 461cd396e3fc7cc4eb9c92bde05c1b9a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  Character: {fileID: 1216015487606410938}
-  CharacterCamera: {fileID: 2027882547592029625}
---- !u!114 &2638584984713973318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2840093267245784157}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 0
-  AuthorityMode: 0
-  TickSyncChildren: 0
-  UseUnreliableDeltas: 0
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 1
-  SyncScaleY: 1
-  SyncScaleZ: 1
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
-  UseHalfFloatPrecision: 0
-  InLocalSpace: 0
-  SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
-  SlerpPosition: 0
 --- !u!54 &6870988545597924809
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -346,10 +227,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2840093267245784157}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -378,20 +259,133 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 141300a033f3a0b468d545b437e79d39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHp: 0
-  currentHP: 0
-  maxStr: 0
-  currentStr: 0
-  maxDex: 0
-  currentDex: 0
-  maxInt: 0
-  currentInt: 0
+  ShowTopMostFoldoutHeaderGroup: 1
+  enableLaunchKey: 0
   currentRightHand: {fileID: 0}
   currentLeftHand: {fileID: 0}
   firstPersonRightHand: {fileID: 5523708329467209519}
   thirdPersonRightHand: {fileID: 0}
   firstPersonLeftHand: {fileID: 5524306559601207489}
   thirdPersonLeftHand: {fileID: 0}
+--- !u!114 &3607883945476143845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840093267245784157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e9b620b780666f488807d4f9855b8e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.DelverIdentity
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &2850474858673589673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840093267245784157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306d3ca319c6f2043aee20e5d9d23095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Movement.DelverCharacterController
+  Motor: {fileID: 0}
+  WalkSpeed: 4.2
+  SprintSpeed: 7
+  CrouchSpeed: 2
+  GroundSharpness: 16
+  AirMoveSpeed: 5.5
+  AirAcceleration: 22
+  AirDrag: 0.12
+  JumpSpeed: 7.2
+  CoyoteTime: 0.12
+  JumpBufferTime: 0.14
+  StandingHeight: 1.8
+  CrouchedHeight: 1.05
+  CapsuleRadius: 0.35
+  MaxStamina: 100
+  SprintDrain: 22
+  StaminaRecovery: 16
+  RecoveryDelay: 0.8
+  SprintUnlockThreshold: 15
+  FullyLadenSpeedMultiplier: 0.62
+  Gravity: {x: 0, y: -26, z: 0}
+  IgnoredColliders: []
+  ThirdPersonAnimator: {fileID: 233376320093754971}
+  FirstPersonAnimator: {fileID: 8468422766228974299}
+--- !u!114 &3205590549421505382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840093267245784157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ec6504d9a9d0ae4a9ce923ac0b0c575, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Movement.DelverInput
+  ShowTopMostFoldoutHeaderGroup: 1
+  Character: {fileID: 0}
+  CharacterCamera: {fileID: 2027882547592029625}
+  SprintKey: 304
+  CrouchKey: 99
+  JumpKey: 32
+  LookSensitivity: 1
+  RequireCursorLock: 1
+--- !u!114 &9218371891274323578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840093267245784157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd4e3629f22d3734ab97daf13a39c8ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Unity.Multiplayer.Samples.Utilities.ClientAuthority.ClientNetworkTransform
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
+--- !u!114 &7067853664953475247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2840093267245784157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bffa44d0ae148184d89b68ea3ede86c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Appearance.NetworkedAppearance
+  ShowTopMostFoldoutHeaderGroup: 1
+  appearances: []
 --- !u!1 &3404390239366653342
 GameObject:
   m_ObjectHideFlags: 0
@@ -649,6 +643,8 @@ MeshRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -670,9 +666,11 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &8522002664747071978
 MonoBehaviour:
@@ -873,10 +871,13 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1937979026721672, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7519498363132698470}
+      addedObject: {fileID: 293702444440272806}
     - targetCorrespondingSourceObject: {fileID: 1937979026721672, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 293702444440272806}
+      addedObject: {fileID: 1724276200871464045}
+    - targetCorrespondingSourceObject: {fileID: 1937979026721672, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1490807370037737345}
   m_SourcePrefab: {fileID: 100100000, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
 --- !u!114 &2027882547592029625 stripped
 MonoBehaviour:
@@ -894,42 +895,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1937979026721672, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
   m_PrefabInstance: {fileID: 2139618758896323361}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7519498363132698470
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2141340093120463017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 0
-  AuthorityMode: 1
-  TickSyncChildren: 0
-  UseUnreliableDeltas: 0
-  SyncPositionX: 1
-  SyncPositionY: 1
-  SyncPositionZ: 1
-  SyncRotAngleX: 1
-  SyncRotAngleY: 1
-  SyncRotAngleZ: 1
-  SyncScaleX: 1
-  SyncScaleY: 1
-  SyncScaleZ: 1
-  PositionThreshold: 0.001
-  RotAngleThreshold: 0.01
-  ScaleThreshold: 0.01
-  UseQuaternionSynchronization: 0
-  UseQuaternionCompression: 0
-  UseHalfFloatPrecision: 0
-  InLocalSpace: 0
-  SwitchTransformSpaceWhenParented: 0
-  Interpolate: 1
-  SlerpPosition: 0
 --- !u!114 &293702444440272806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -946,6 +911,43 @@ MonoBehaviour:
   lhPickupKey: 113
   playerStats: {fileID: 4828535022672715876}
   pickupDistance: 5
+--- !u!114 &1724276200871464045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2141340093120463017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d3fc00bc6e118a4f985bb6d7f7d76f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Netcode.LocalPlayerOnly
+  ShowTopMostFoldoutHeaderGroup: 1
+  disableCamera: 1
+  disableAudioListener: 1
+  alsoDisable: []
+  alsoDeactivate:
+  - {fileID: 0}
+--- !u!114 &1490807370037737345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2141340093120463017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07b4993bb0fa15d4f9e897e3dfa49777, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Game.CarriedTorch
+  flameColor: {r: 1, g: 0.72, b: 0.42, a: 1}
+  baseIntensity: 3.2
+  range: 16
+  flickerDepth: 0.16
+  flickerSpeed: 7
+  castShadows: 1
+  burnSeconds: 0
 --- !u!4 &2143155095363747129 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4353896453404184, guid: c75e91cf060bbf04e89204fa400606df, type: 3}
@@ -1013,7 +1015,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1403899651085326, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1410441029568162, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
       propertyPath: m_IsActive
@@ -1103,6 +1105,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1403899651085326, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2313129849994744781}
+    - targetCorrespondingSourceObject: {fileID: 1403899651085326, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2182060418400660917}
   m_SourcePrefab: {fileID: 100100000, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
 --- !u!1 &4957795129531846502 stripped
 GameObject:
@@ -1123,6 +1128,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   hideAllButShadows: 1
+--- !u!114 &2182060418400660917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4957795129531846502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3936f78a001c52144a4d2cd8d8b30a4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Appearance.CharacterAppearance
+  rigRoot: {fileID: 0}
+  scope: 0
+  livePreview: 0
+  previewSeed: 0
 --- !u!4 &4960821859727500172 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4852709197117668, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
@@ -1440,6 +1461,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1403899651085326, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1879342530949824490}
+    - targetCorrespondingSourceObject: {fileID: 1403899651085326, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4271850388751965771}
   m_SourcePrefab: {fileID: 100100000, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
 --- !u!1 &5523708329467209519 stripped
 GameObject:
@@ -1465,6 +1489,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   hideAllButShadows: 0
+--- !u!114 &4271850388751965771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5523729924225837393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3936f78a001c52144a4d2cd8d8b30a4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Appearance.CharacterAppearance
+  rigRoot: {fileID: 0}
+  scope: 1
+  livePreview: 0
+  previewSeed: 0
 --- !u!1 &5524306559601207489 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1829877255640478, guid: e2bb5b4c9091a6142b8179f64257685c, type: 3}
