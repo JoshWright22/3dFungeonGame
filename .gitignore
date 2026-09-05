@@ -86,3 +86,7 @@ Packages/manifest.json.bak
 /Assets/Imports/PolygonStarter.meta
 /Assets/Imports/StarterAssets/
 /Assets/Imports/StarterAssets.meta
+
+# MCP/editor screenshots - regenerated on demand, not project content
+/Assets/Screenshots/
+/Assets/Screenshots.meta

@@ -169,7 +169,6 @@ public class Generator3D : MonoBehaviour
 
     // Vertical offsets calculated from the prefab's mesh bounds (used for non-cubes or where floor alignment is key)
     private float DoorFloorOffset;
-    private float StairFloorOffset;
 
     /// <summary>
     /// Height of the walkable surface above a cell's grid line, derived from the floor tile's own
@@ -479,14 +478,6 @@ public class Generator3D : MonoBehaviour
         placedTorches.Add(cell);
     }
 
-    /// <summary>Distance from a prefab's pivot to the bottom of its geometry.</summary>
-    float GetPrefabFloorOffset(GameObject prefab)
-    {
-        if (prefab == null) return HalfWorldUnit;
-
-        MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
-        return renderer == null ? HalfWorldUnit : renderer.bounds.extents.y;
-    }
 
     // Combined offset calculation method
     void CalculateComponentOffsets()
@@ -503,19 +494,6 @@ public class Generator3D : MonoBehaviour
             return renderer.bounds.extents.y;
         }
 
-        // Helper to find the distance from the pivot (0,0,0) to the side (extents.x or extents.z)
-        float GetHorizontalCenterOffset(GameObject prefab)
-        {
-            MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
-            if (renderer == null)
-            {
-                // Fallback to half the WorldUnitSize (2.5)
-                return HalfWorldUnit;
-            }
-            // Use the X extent, assuming a square-based object
-            return renderer.bounds.extents.x;
-        }
-
         // Horizontal offsets come from the tile that actually gets spawned.
         FloorPivotOffset = PivotOffsetFor(RepresentativeFloorPrefab());
 
@@ -524,9 +502,8 @@ public class Generator3D : MonoBehaviour
         // taller, which is exactly how far into the floor the party used to spawn.
         FloorSurfaceOffset = HalfWorldUnit + GetTopOffset(RepresentativeFloorPrefab());
 
-        // Door and Stair Prefabs only need the vertical offset to sit on the floor
+        // The doorway keeps its own vertical offset; stairs now stand on FloorSurfaceOffset.
         DoorFloorOffset = GetFloorOffset(doorPrefab);
-        StairFloorOffset = GetFloorOffset(stairPrefab);
 
         if (drawHallwayGizmos)
             Debug.Log($"Offsets: floor pivot={FloorPivotOffset}, floor surface={FloorSurfaceOffset}, door Y={DoorFloorOffset}");
@@ -613,6 +590,20 @@ public class Generator3D : MonoBehaviour
         // No collider at all - fall back to what is drawn.
         MeshRenderer renderer = prefab.GetComponentInChildren<MeshRenderer>();
         return renderer == null ? 0f : renderer.bounds.center.y + renderer.bounds.extents.y;
+    }
+
+    /// <summary>
+    /// A stable stand-in for measuring tile geometry. Every variant is the same size, so any of
+    /// them will do - but it must not consume a random draw, because offsets are calculated
+    /// before the run's RNG is seeded.
+    /// </summary>
+    GameObject RepresentativeFloorPrefab()
+    {
+        if (floorPrefabs != null)
+            foreach (var p in floorPrefabs)
+                if (p != null) return p;
+
+        return cubePrefab;
     }
 
     /// <summary>A floor tile variant, or the single legacy prefab when no variants are set.</summary>
@@ -936,10 +927,6 @@ public class Generator3D : MonoBehaviour
         }
     }
 
-    void PlaceRoom(Vector3Int location, Vector3Int size)
-    {
-        PlaceRoomTiles(location, size);
-    }
 
     void PlaceHallway(Vector3Int location)
     {
