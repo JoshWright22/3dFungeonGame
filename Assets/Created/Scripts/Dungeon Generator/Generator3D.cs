@@ -92,6 +92,14 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     GameObject[] doorPrefabs;
 
+    [Tooltip("Door leaves hung in the doorway openings. Leave empty for bare archways.")]
+    [SerializeField]
+    GameObject[] doorLeafPrefabs;
+
+    [Tooltip("Half the doorway opening width - where the leaf's hinge sits, measured from the centre of the frame.")]
+    [SerializeField]
+    float doorHingeOffset = 0.83f;
+
     [Tooltip("Strip colliders from spawned doorways. Only needed for door prefabs whose collider is a solid box spanning the opening; the Synty wall-doorframe pieces use MeshColliders and are already walkable.")]
     [SerializeField]
     bool makeDoorwaysPassable = false;
@@ -175,6 +183,13 @@ public class Generator3D : MonoBehaviour
     /// there is a hole in the corridor edge.
     /// </summary>
     readonly HashSet<(Vector3Int cell, Vector3Int dir)> stairMouths = new HashSet<(Vector3Int, Vector3Int)>();
+
+    /// <summary>
+    /// The flanks of every staircase. A ramp climbs past whatever sits beside it, so even when
+    /// the neighbouring cell has a floor of its own that floor is half a storey down - a drop the
+    /// ordinary same-level wall rule cannot see. These sides are always walled.
+    /// </summary>
+    readonly HashSet<(Vector3Int cell, Vector3Int dir)> stairFlanks = new HashSet<(Vector3Int, Vector3Int)>();
     readonly List<(Vector3Int cell, Vector3Int dir)> doorways = new List<(Vector3Int, Vector3Int)>();
 
     // Define the world unit size for one grid cell
@@ -241,6 +256,7 @@ public class Generator3D : MonoBehaviour
         placedTorches.Clear();
         stairRuns.Clear();
         stairMouths.Clear();
+        stairFlanks.Clear();
         doorways.Clear();
         entryRoom = null;
 
@@ -303,6 +319,10 @@ public class Generator3D : MonoBehaviour
         ceilingPrefab = profile.ceilingPrefab;
 
         if (profile.stairPrefab != null) stairPrefab = profile.stairPrefab;
+
+        doorLeafPrefabs = profile.doorLeafPrefabs;
+        doorHingeOffset = profile.doorHingeOffset;
+        if (profile.doubleSidedWallPrefab != null) doubleSidedWallPrefab = profile.doubleSidedWallPrefab;
 
         wallYNudge = profile.wallYNudge;
         makeDoorwaysPassable = profile.makeDoorwaysPassable;
@@ -467,10 +487,22 @@ public class Generator3D : MonoBehaviour
     void MapStairMouths()
     {
         stairMouths.Clear();
+        stairFlanks.Clear();
 
         foreach (var run in stairRuns)
         {
             Vector3Int h = run.Horizontal;
+
+            // Perpendicular to the direction of travel: the open sides of the stairwell.
+            Vector3Int perpA = new Vector3Int(h.z, 0, h.x);
+            Vector3Int perpB = -perpA;
+
+            foreach (var cell in new[] { run.Prev + h, run.Prev + h * 2,
+                                         run.Prev + run.Vertical + h, run.Prev + run.Vertical + h * 2 })
+            {
+                stairFlanks.Add((cell, perpA));
+                stairFlanks.Add((cell, perpB));
+            }
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
@@ -583,7 +615,6 @@ public class Generator3D : MonoBehaviour
 
         // Walls pivot at their own base, so they simply sit on the floor surface.
         float wallFloorOffset = FloorSurfaceOffset + wallYNudge;
-        float ceilingOffset = FloorSurfaceOffset;
 
         for (int x = 0; x < size.x; x++)
         for (int y = 0; y < size.y; y++)
@@ -615,10 +646,17 @@ public class Generator3D : MonoBehaviour
                 // an upper corridor meeting a room's headroom, for instance.
                 bool guard = standable && !enclose && !HasFloor(beyond);
 
-                if (!enclose && !guard) continue;
+                // A stairwell flank is walled even when the cell beside it has a floor, because
+                // that floor is half a storey below the ramp climbing past it.
+                bool flank = stairFlanks.Contains((cell, dir));
+
+                if (!enclose && !guard && !flank) continue;
 
                 // A guard wall is seen from both sides, so it needs a mesh with faces on both.
-                GameObject prefab = guard && doubleSidedWallPrefab != null
+                // Guards and flanks are seen from both sides, so they need a two-sided mesh.
+                bool seenBothSides = guard || (flank && !enclose);
+
+                GameObject prefab = seenBothSides && doubleSidedWallPrefab != null
                     ? doubleSidedWallPrefab
                     : wallPrefabs[random.Next(wallPrefabs.Length)];
 
@@ -628,7 +666,10 @@ public class Generator3D : MonoBehaviour
                 // a wall based at the floor line leaves the lower half of the ramp open to the
                 // drop beside it. A second course underneath closes it.
                 if (here == CellType.Stairs)
+                {
                     PlaceWall(cellCentre, dir, wallFloorOffset - HalfWorldUnit, prefab);
+                    PlaceWall(cellCentre, dir, wallFloorOffset + HalfWorldUnit, prefab);
+                }
 
                 if (standable) TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
             }
@@ -640,7 +681,13 @@ public class Generator3D : MonoBehaviour
 
                 if (!openAbove)
                 {
-                    Vector3 pos = cellCentre + new Vector3(0f, WorldUnitSize + ceilingOffset, 0f);
+                    // Ceiling slabs pivot at a corner like the floor tiles do, and hang below
+                    // that pivot - so they take the tile's pivot offset, not the cell centre,
+                    // and sit at the top of the cell.
+                    Vector3 pivot = PivotOffsetFor(ceilingPrefab);
+                    Vector3 pos = (Vector3)cell * WorldUnitSize
+                        + new Vector3(pivot.x, WorldUnitSize + FloorSurfaceOffset, pivot.z);
+
                     Spawn(ceilingPrefab, pos, Quaternion.identity);
                 }
             }
@@ -681,6 +728,38 @@ public class Generator3D : MonoBehaviour
     {
         Vector3 right = rotation * Vector3.right;
         Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
+    }
+
+    /// <summary>
+    /// Stands two copies of a piece back to back so it is textured from both directions.
+    ///
+    /// This is NOT the mirror that failed before. That spawned the copy at the same depth, where
+    /// the 0.43-thick slabs interpenetrated and the blank back plane punched through the textured
+    /// face. Here each copy is pushed back along its own forward by the distance from its pivot
+    /// plane to its front face, so the two front faces meet on the boundary and each body sits
+    /// entirely on its own side.
+    /// </summary>
+    void SpawnDoubleSidedPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
+    {
+        if (prefab == null) return;
+
+        float front = FrontFaceOffset(prefab);
+
+        Vector3 rightA = rotation * Vector3.right;
+        Vector3 fwdA = rotation * Vector3.forward;
+        Spawn(prefab, boundary + rightA * HalfWorldUnit - fwdA * front, rotation);
+
+        Quaternion flipped = rotation * Quaternion.Euler(0f, 180f, 0f);
+        Vector3 rightB = flipped * Vector3.right;
+        Vector3 fwdB = flipped * Vector3.forward;
+        Spawn(prefab, boundary + rightB * HalfWorldUnit - fwdB * front, flipped);
+    }
+
+    /// <summary>Distance from a prefab's pivot plane to the front of its geometry, along +Z.</summary>
+    float FrontFaceOffset(GameObject prefab)
+    {
+        MeshRenderer renderer = prefab != null ? prefab.GetComponentInChildren<MeshRenderer>() : null;
+        return renderer == null ? 0f : renderer.bounds.max.z;
     }
 
     /// <summary>
@@ -1204,17 +1283,45 @@ public class Generator3D : MonoBehaviour
 
         Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
 
-        // A doorway is seen from both sides by definition - it is the one piece you walk through -
-        // so it needs the mirrored copy even more than a plain wall does.
+        // A doorway is walked through, so it is seen from both sides by definition.
         int before = dungeonRoot.childCount;
-        SpawnWallPiece(DoorPrefab(), boundary, rotation);
+        SpawnDoubleSidedPiece(DoorPrefab(), boundary, rotation);
 
-        if (!makeDoorwaysPassable) return;
+        if (makeDoorwaysPassable)
+        {
+            // Only needed for frames whose collider spans the opening. The Synty wall-doorframe
+            // pieces use MeshColliders, which already leave the doorway walkable.
+            for (int i = before; i < dungeonRoot.childCount; i++)
+                foreach (var collider in dungeonRoot.GetChild(i).GetComponentsInChildren<Collider>(true))
+                    collider.enabled = false;
+        }
 
-        // Only needed for prefabs whose collider spans the opening. The Synty wall-doorframe
-        // pieces use MeshColliders, which already leave the doorway walkable.
-        for (int i = before; i < dungeonRoot.childCount; i++)
-            foreach (var collider in dungeonRoot.GetChild(i).GetComponentsInChildren<Collider>(true))
-                collider.enabled = false;
+        // Hung after the stripping pass: the leaf's collider is what makes a shut door solid, so
+        // it must survive even when the frame's is being removed.
+        PlaceDoorLeaf(boundary, rotation);
+    }
+
+    /// <summary>
+    /// Hangs a door leaf in a doorway. The Synty leaves pivot on their hinge edge, so the hinge
+    /// goes at one jamb and the leaf fills across to the other.
+    /// </summary>
+    void PlaceDoorLeaf(Vector3 boundary, Quaternion rotation)
+    {
+        if (doorLeafPrefabs == null || doorLeafPrefabs.Length == 0) return;
+
+        GameObject prefab = doorLeafPrefabs[random.Next(doorLeafPrefabs.Length)];
+        if (prefab == null) return;
+
+        Vector3 right = rotation * Vector3.right;
+        bool hingeRight = random.Next(2) == 0;
+
+        Vector3 hinge = boundary + right * (hingeRight ? doorHingeOffset : -doorHingeOffset);
+        Quaternion leafRotation = hingeRight ? rotation : rotation * Quaternion.Euler(0f, 180f, 0f);
+
+        GameObject leaf = Spawn(prefab, hinge, leafRotation);
+        if (leaf == null) return;
+
+        var door = leaf.AddComponent<Delver.Dungeon.DungeonDoor>();
+        door.SwingSign = hingeRight ? 1f : -1f;
     }
 }

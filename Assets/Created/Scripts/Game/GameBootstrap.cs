@@ -34,6 +34,7 @@ namespace Delver.Game
         [Header("UI")]
         [SerializeField] private bool spawnLobbyScreen = true;
         [SerializeField] private bool spawnCharacterSheet = true;
+        [SerializeField] private bool spawnStaminaBar = true;
 
         [Header("Steam")]
         [Tooltip("Create a Steam lobby when auto-hosting. Off keeps editor testing entirely local.")]
@@ -69,6 +70,13 @@ namespace Delver.Game
                 var go = new GameObject("~CharacterSheet");
                 go.transform.SetParent(transform, false);
                 go.AddComponent<CharacterSheetHUD>();
+            }
+
+            if (spawnStaminaBar)
+            {
+                var go = new GameObject("~StaminaBar");
+                go.transform.SetParent(transform, false);
+                go.AddComponent<StaminaHUD>();
             }
         }
 

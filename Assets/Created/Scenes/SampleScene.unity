@@ -2910,8 +2910,11 @@ MonoBehaviour:
   doorPrefabs:
   - {fileID: 138718, guid: cd0f01e625e553e4da51ffa4b8e3848d, type: 3}
   - {fileID: 116930, guid: ded14b4d6268d2643ae9d947489d4667, type: 3}
-  - {fileID: 187352, guid: 947ebd566533c054abc552d63317dbaf, type: 3}
-  - {fileID: 115268, guid: b12f29180236ca64ab5aa5c5a3b025da, type: 3}
+  doorLeafPrefabs:
+  - {fileID: 114226, guid: f7f8afc7225502240bc7b70a9419c566, type: 3}
+  - {fileID: 128464, guid: 30cbf2b140e7ff04cac9897c5ab79430, type: 3}
+  - {fileID: 125892, guid: 3f775ea849f021346ac89fa51ec6a7d1, type: 3}
+  doorHingeOffset: 0.83
   makeDoorwaysPassable: 0
   torchPrefabs:
   - {fileID: 0}
@@ -3631,6 +3634,7 @@ MonoBehaviour:
   autoBeginDescent: 1
   spawnLobbyScreen: 1
   spawnCharacterSheet: 1
+  spawnStaminaBar: 1
   autoHostCreatesSteamLobby: 0
   maxPartySize: 4
   legacyMenuCanvas: {fileID: 1766789559}

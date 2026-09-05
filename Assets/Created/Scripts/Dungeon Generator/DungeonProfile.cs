@@ -77,6 +77,15 @@ namespace Delver.Dungeon
         [Tooltip("Strip colliders from doorways. Only needed when a door prefab's collider is a solid box spanning the opening.")]
         public bool makeDoorwaysPassable = false;
 
+        [Tooltip("Door leaves hung in the openings. They swing aside as delvers approach. Leave empty for bare archways.")]
+        public GameObject[] doorLeafPrefabs;
+
+        [Tooltip("Half the doorway opening width - where a leaf's hinge sits. Must match the frames above (1.66 wide opening -> 0.83).")]
+        public float doorHingeOffset = 0.83f;
+
+        [Tooltip("A wall mesh with faces on BOTH sides, for the few walls genuinely seen from both.")]
+        public GameObject doubleSidedWallPrefab;
+
         [Header("Stairs")]
         public GameObject stairPrefab;
 
