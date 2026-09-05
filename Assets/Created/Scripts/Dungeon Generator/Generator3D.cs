@@ -225,6 +225,15 @@ public class Generator3D : MonoBehaviour
     readonly Dictionary<Vector3Int, Vector3Int> stairAxis = new Dictionary<Vector3Int, Vector3Int>();
 
     /// <summary>
+    /// The only faces along a staircase's axis that the climb actually passes through.
+    ///
+    /// Everything else on that axis gets walled - the far end of the wedge under the run, and the
+    /// back of the upper landing, where the ramp arrives from below and never continues. Leaving
+    /// the whole axis open exposed those two spots.
+    /// </summary>
+    readonly HashSet<(Vector3Int cell, Vector3Int dir)> stairOpenFaces = new HashSet<(Vector3Int, Vector3Int)>();
+
+    /// <summary>
     /// Every cell the party can actually stand in, from the reachability pass. Kept so the wall
     /// pass can seal anything outside it: if you cannot get somewhere, you should not be able to
     /// see or step into it either.
@@ -299,6 +308,7 @@ public class Generator3D : MonoBehaviour
         stairFlanks.Clear();
         stairUnderFloors.Clear();
         stairAxis.Clear();
+        stairOpenFaces.Clear();
         reachableCells.Clear();
         doorways.Clear();
         entryRoom = null;
@@ -597,9 +607,27 @@ public class Generator3D : MonoBehaviour
                 ? run.Prev + h * 2
                 : run.Prev + run.Vertical + h;
 
-            // Every cell of the run remembers which way the stairs travel, so the wall pass can
-            // leave that axis alone entirely.
+            // Every cell of the run remembers which way the stairs travel.
             foreach (var c in quad) stairAxis[c] = h;
+
+            // The four faces the climb passes through, and only those. Read bottom to top:
+            // floor onto the first ramp; first ramp over the wedge; wedge airspace into the
+            // second ramp; second ramp out onto the landing.
+            Vector3Int lower1 = run.Prev + h;          // lower ramp
+            Vector3Int wedge  = run.Prev + h * 2;      // under the upper ramp
+            Vector3Int upper1 = run.Prev + run.Vertical + h;
+            Vector3Int upper2 = run.Upper;             // upper ramp
+
+            void Open(Vector3Int a, Vector3Int dir)
+            {
+                stairOpenFaces.Add((a, dir));
+                stairOpenFaces.Add((a + dir, -dir));
+            }
+
+            Open(run.Prev, h);   // bottom mouth
+            Open(lower1, h);     // lower ramp -> wedge
+            Open(upper1, h);     // wedge airspace -> upper ramp
+            Open(upper2, h);     // upper ramp -> landing
 
             // Bottom of the run: the floor cell steps onto the first ramp cell.
             stairMouths.Add((run.Lower, h));
@@ -739,13 +767,21 @@ public class Generator3D : MonoBehaviour
                 bool inBounds = grid.InBounds(neighbour);
                 CellType beyond = inBounds ? grid[neighbour] : CellType.None;
 
-                // A stairwell is walled down its sides and open along its axis. Walls placed on
-                // the travel axis sit half a storey off the ramp surface passing through the
-                // cell, so they either block the climb or hang over it.
-                if (here == CellType.Stairs
+                // Along a staircase's axis, only the faces the climb passes through stay open.
+                // The rest - the far end of the wedge, the back of the landing - are walled, or
+                // they expose space you cannot reach from the stairs.
+                bool onStairAxis = here == CellType.Stairs
                     && stairAxis.TryGetValue(cell, out Vector3Int axis)
-                    && (dir == axis || dir == -axis))
+                    && (dir == axis || dir == -axis);
+
+                if (onStairAxis)
                 {
+                    if (stairOpenFaces.Contains((cell, dir))) continue;
+
+                    // Force it: the neighbour may look like open grid, but there is no way to it
+                    // from here.
+                    GameObject axisPrefab = wallPrefabs[random.Next(wallPrefabs.Length)];
+                    PlaceWall(cellCentre, dir, wallFloorOffset, axisPrefab, true);
                     continue;
                 }
 
