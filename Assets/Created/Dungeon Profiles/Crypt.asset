@@ -38,7 +38,7 @@ MonoBehaviour:
   - {fileID: 140754, guid: e73dff4b52d607f4ca11b85eca8f146b, type: 3}
   - {fileID: 111768, guid: d35aef65f03ae2a4e98cc24bcb5b5cdc, type: 3}
   - {fileID: 183648, guid: 42988b617e6b4924e88885352823ba7f, type: 3}
-  wallYNudge: 0
+  wallYNudge: -0.12
   ceilingPrefab: {fileID: 106404, guid: f5bef9e1bbbbe9f4a89a3c958ad516c7, type: 3}
   doorPrefabs:
   - {fileID: 138718, guid: cd0f01e625e553e4da51ffa4b8e3848d, type: 3}

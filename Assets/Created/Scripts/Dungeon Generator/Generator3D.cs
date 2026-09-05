@@ -135,6 +135,10 @@ public class Generator3D : MonoBehaviour
     [SerializeField]
     GameObject doubleSidedWallPrefab;
 
+    [Tooltip("A material with Render Face set to Both. Applied to doorways and to walls seen from both sides, so the far face is textured instead of being culled away.")]
+    [SerializeField]
+    Material twoSidedMaterial;
+
     [Header("Debug")]
     [SerializeField]
     bool drawHallwayGizmos = false;
@@ -508,8 +512,11 @@ public class Generator3D : MonoBehaviour
             Vector3Int perpA = new Vector3Int(h.z, 0, h.x);
             Vector3Int perpB = -perpA;
 
-            foreach (var cell in new[] { run.Prev + h, run.Prev + h * 2,
-                                         run.Prev + run.Vertical + h, run.Prev + run.Vertical + h * 2 })
+            // Deliberately excludes the last ramp cell (run.Upper). The corridor continues from
+            // there and may turn, so forcing walls on its perpendiculars seals the way out - that
+            // is what made staircases run straight into a wall at the top. The three interior
+            // ramp cells are never a junction, so walling their flanks is always safe.
+            foreach (var cell in new[] { run.Prev + h, run.Prev + h * 2, run.Prev + run.Vertical + h })
             {
                 stairFlanks.Add((cell, perpA));
                 stairFlanks.Add((cell, perpB));
@@ -663,8 +670,9 @@ public class Generator3D : MonoBehaviour
                 // an upper corridor meeting a room's headroom, for instance.
                 bool guard = standable && !enclose && !HasFloor(beyond);
 
-                // A stairwell flank is walled even when the cell beside it has a floor, because
-                // that floor is half a storey below the ramp climbing past it.
+                // Forced on the interior ramp cells only (see MapStairMouths): a ramp climbs past
+                // whatever is beside it, so a neighbour with a floor of its own is still half a
+                // storey down - a drop the same-level rule cannot see.
                 bool flank = stairFlanks.Contains((cell, dir));
 
                 if (!enclose && !guard && !flank) continue;
@@ -674,22 +682,25 @@ public class Generator3D : MonoBehaviour
                 // ramp climbs past it, so it is looked at from above, below and alongside.
                 bool seenBothSides = guard || flank;
 
-                GameObject prefab = seenBothSides && doubleSidedWallPrefab != null
-                    ? doubleSidedWallPrefab
-                    : wallPrefabs[random.Next(wallPrefabs.Length)];
+                GameObject prefab = wallPrefabs[random.Next(wallPrefabs.Length)];
 
-                PlaceWall(cellCentre, dir, wallFloorOffset, prefab);
+                PlaceWall(cellCentre, dir, wallFloorOffset, prefab, seenBothSides);
 
                 // A staircase cell's ramp descends half a storey below that cell's floor line, so
                 // a wall based at the floor line leaves the lower half of the ramp open to the
                 // drop beside it. A second course underneath closes it.
                 if (here == CellType.Stairs)
                 {
-                    PlaceWall(cellCentre, dir, wallFloorOffset - HalfWorldUnit, prefab);
-                    PlaceWall(cellCentre, dir, wallFloorOffset + HalfWorldUnit, prefab);
+                    Vector3Int below = cell + Vector3Int.down;
+                    bool solidBelow = !grid.InBounds(below) || !IsWalkable(grid[below]);
+
+                    // Skipped when there is a room underneath, or the course hangs through its ceiling.
+                    if (solidBelow)
+                        PlaceWall(cellCentre, dir, wallFloorOffset - HalfWorldUnit, prefab, seenBothSides);
                 }
 
-                if (standable) TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
+                if (standable && here != CellType.Stairs)
+                    TryPlaceTorch(cell, cellCentre, dir, wallFloorOffset);
             }
 
             if (ceilingPrefab != null && standable)
@@ -719,7 +730,7 @@ public class Generator3D : MonoBehaviour
     /// -X, so the piece is pushed half a cell along its own right vector to sit centred on the
     /// edge rather than hanging off it.
     /// </summary>
-    void PlaceWall(Vector3 cellCentre, Vector3Int dir, float floorOffset, GameObject prefab)
+    void PlaceWall(Vector3 cellCentre, Vector3Int dir, float floorOffset, GameObject prefab, bool bothSides = false)
     {
         if (prefab == null) return;
 
@@ -728,7 +739,9 @@ public class Generator3D : MonoBehaviour
 
         // Face the wall back into the room it encloses.
         Quaternion rotation = Quaternion.LookRotation(-outward, Vector3.up);
-        SpawnWallPiece(prefab, boundary, rotation);
+
+        if (bothSides) SpawnDoubleSidedPiece(prefab, boundary, rotation);
+        else SpawnWallPiece(prefab, boundary, rotation);
     }
 
     /// <summary>
@@ -742,42 +755,58 @@ public class Generator3D : MonoBehaviour
     /// plane renders in front of the textured face. Walls are instead placed per open cell, which
     /// already puts a textured face on whichever side you can stand.
     /// </summary>
-    void SpawnWallPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
+    GameObject SpawnWallPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
     {
         Vector3 right = rotation * Vector3.right;
-        Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
+        return Spawn(prefab, boundary + right * HalfWorldUnit, rotation);
     }
 
     /// <summary>
-    /// Stands two copies of a piece back to back so it is textured from both directions.
+    /// Stands two copies of a piece facing opposite ways, separated so neither intrudes on the
+    /// other's side of the wall.
     ///
-    /// This is NOT the mirror that failed before. That spawned the copy at the same depth, where
-    /// the 0.43-thick slabs interpenetrated and the blank back plane punched through the textured
-    /// face. Here each copy is pushed back along its own forward by the distance from its pivot
-    /// plane to its front face, so the two front faces meet on the boundary and each body sits
-    /// entirely on its own side.
+    /// The Synty wall meshes carry their brick relief on the front and a flat plane on the back,
+    /// so simply rendering the back face - which a two-sided material does - still shows a blank
+    /// wall from one side. Two outward-facing copies is the only way to get relief both ways.
+    ///
+    /// The separation is what makes this work where the earlier mirror did not. Placed at the
+    /// same depth the two slabs interleave, and the second copy's flat back shows through the
+    /// gaps between the first copy's protruding bricks. Pushing each copy a half-thickness clear
+    /// of the boundary leaves each entirely on its own side.
     /// </summary>
     void SpawnDoubleSidedPiece(GameObject prefab, Vector3 boundary, Quaternion rotation)
     {
         if (prefab == null) return;
 
-        float front = FrontFaceOffset(prefab);
+        float separation = HalfThickness(prefab) + 0.01f;
 
-        Vector3 rightA = rotation * Vector3.right;
-        Vector3 fwdA = rotation * Vector3.forward;
-        Spawn(prefab, boundary + rightA * HalfWorldUnit - fwdA * front, rotation);
+        Vector3 fwd = rotation * Vector3.forward;
+        Vector3 right = rotation * Vector3.right;
+        Spawn(prefab, boundary + right * HalfWorldUnit + fwd * separation, rotation);
 
         Quaternion flipped = rotation * Quaternion.Euler(0f, 180f, 0f);
         Vector3 rightB = flipped * Vector3.right;
-        Vector3 fwdB = flipped * Vector3.forward;
-        Spawn(prefab, boundary + rightB * HalfWorldUnit - fwdB * front, flipped);
+        Spawn(prefab, boundary + rightB * HalfWorldUnit - fwd * separation, flipped);
     }
 
-    /// <summary>Distance from a prefab's pivot plane to the front of its geometry, along +Z.</summary>
-    float FrontFaceOffset(GameObject prefab)
+    /// <summary>Half the depth of a prefab's geometry along its own Z.</summary>
+    float HalfThickness(GameObject prefab)
     {
         MeshRenderer renderer = prefab != null ? prefab.GetComponentInChildren<MeshRenderer>() : null;
-        return renderer == null ? 0f : renderer.bounds.max.z;
+        return renderer == null ? 0.25f : renderer.bounds.size.z * 0.5f;
+    }
+
+    /// <summary>Swaps a spawned piece onto the two-sided material, if one is assigned.</summary>
+    void ApplyTwoSidedMaterial(GameObject instance)
+    {
+        if (instance == null || twoSidedMaterial == null) return;
+
+        foreach (var renderer in instance.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            var mats = renderer.sharedMaterials;
+            for (int i = 0; i < mats.Length; i++) mats[i] = twoSidedMaterial;
+            renderer.sharedMaterials = mats;
+        }
     }
 
     /// <summary>

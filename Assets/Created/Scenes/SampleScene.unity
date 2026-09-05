@@ -2929,8 +2929,9 @@ MonoBehaviour:
   - {fileID: 111768, guid: d35aef65f03ae2a4e98cc24bcb5b5cdc, type: 3}
   - {fileID: 183648, guid: 42988b617e6b4924e88885352823ba7f, type: 3}
   ceilingPrefab: {fileID: 0}
-  wallYNudge: 0
+  wallYNudge: -0.12
   doubleSidedWallPrefab: {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
+  twoSidedMaterial: {fileID: 2100000, guid: a56b011c6d8f5fe4ca876a54d115373e, type: 2}
   drawHallwayGizmos: 0
 --- !u!4 &801771303
 Transform:
