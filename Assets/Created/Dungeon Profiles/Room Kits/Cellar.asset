@@ -1,0 +1,136 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4118e38f9e045e42913d52500506f19, type: 3}
+  m_Name: Cellar
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Dungeon.RoomKit
+  walls:
+  - prefab: {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
+    weight: 7
+  - prefab: {fileID: 140754, guid: e73dff4b52d607f4ca11b85eca8f146b, type: 3}
+    weight: 2
+  - prefab: {fileID: 189982, guid: a475e72db2f78ba41b557ca01e7ed990, type: 3}
+    weight: 1
+  floors:
+  - prefab: {fileID: 139220, guid: 704795cfbb02b844591f900d2b76342e, type: 3}
+    weight: 4
+  - prefab: {fileID: 127758, guid: 0e2d311aa2f76c2479ed7bbf11aa4ffb, type: 3}
+    weight: 2
+  - prefab: {fileID: 126278, guid: 5409c9ff5a9c7b045a9809d71ccdcab8, type: 3}
+    weight: 1
+  rotateFloors: 1
+  ceiling: {fileID: 173574, guid: 0ea397d43eaecae4b81003acaaf9abb5, type: 3}
+  ceilings: []
+  rotateCeilings: 0
+  favouriteBoost: 3
+  upperBand: {fileID: 195864, guid: 23009f7f4b01d0c4297c7706abc8ca8e, type: 3}
+  post: {fileID: 122250, guid: 64f4a2188b2ff8746aa8ee3ca6e443a9, type: 3}
+  postInset: 0.5
+  brace: {fileID: 196348, guid: e26369d05b065684f99bb66a9ca94b93, type: 3}
+  postEveryStorey: 0
+  innerCorner: {fileID: 0}
+  lowerBand: {fileID: 0}
+  courseTrim: {fileID: 0}
+  courseTrimInset: 0.5
+  courseTrimDrop: 0.5
+  archway: {fileID: 0}
+  archBase: 2.6
+  archScale: {x: 1, y: 1, z: 1}
+  interiorPost: {fileID: 0}
+  interiorPostScale: {x: 1, y: 1, z: 1}
+  doorLeaves: []
+  propSets:
+  - name: Kegs
+    pieces:
+    - {fileID: 145852, guid: 4ddf6f65a614aa742b0f4f1012b3d339, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.75
+    inset: 3
+    spread: 0
+    lineWall: 1
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Barrels
+    pieces:
+    - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
+    - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
+    - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
+    - {fileID: 144150, guid: fb698eb68f15b3845baf425febbee697, type: 3}
+    - {fileID: 175928, guid: 497b6e4d56b9a2d48ac2cd8de829fa88, type: 3}
+    minPieces: 3
+    maxPieces: 5
+    maxPerRoom: 2
+    chance: 0.9
+    inset: 1.1
+    spread: 0.9
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 90
+  - name: Shelves
+    pieces:
+    - {fileID: 132048, guid: e56ebb4a3996049479a45d35c3854e8c, type: 3}
+    - {fileID: 168672, guid: 73b39cdd67614854b808700c7c5d34c7, type: 3}
+    minPieces: 2
+    maxPieces: 2
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 0.75
+    spread: 0.8
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 3
+  - name: Planks
+    pieces:
+    - {fileID: 187594, guid: dcb161f5ca573ab41ac18a8b74630ef6, type: 3}
+    - {fileID: 143494, guid: 9a8c2f1086b25c04fb374a5c421370c5, type: 3}
+    - {fileID: 146684, guid: 7c9ebadcd73cafa4980b3f63b3c75f1a, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 1
+    chance: 0.5
+    inset: 0.9
+    spread: 0.9
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 1
+    yawJitter: 90
+  ceilingHangers:
+  - {fileID: 105538, guid: 2178485d4c522584aa93ff4f062b058e, type: 3}
+  - {fileID: 112966, guid: 2bca940be3594bf45bbdb46ee493b30a, type: 3}
+  - {fileID: 172570, guid: 15e472a410327924bb1888ad0d516d5f, type: 3}
+  hangerChance: 0.2
+  rubble:
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  - {fileID: 175674, guid: adee3450e574fba4ba001e011c19c44b, type: 3}
+  - {fileID: 144134, guid: 606dc5976508ea346a8b019a9f3be565, type: 3}
+  rubbleChance: 0.35
+  rubbleScale: {x: 1.44, y: 2.5, z: 1.44}
+  lightFixture: {fileID: 158108, guid: eab88f6a71881d8468474cc3e3610734, type: 3}
+  lightMount: 0
+  mountHeight: 1.7
+  lightColor: {r: 1, g: 0.69, b: 0.14, a: 1}
+  lightIntensity: 3
+  lightRange: 10
+  lightHeight: 1.7
+  cellsPerLight: 4

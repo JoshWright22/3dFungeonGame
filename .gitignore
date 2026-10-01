@@ -90,3 +90,9 @@ Packages/manifest.json.bak
 # MCP/editor screenshots - regenerated on demand, not project content
 /Assets/Screenshots/
 /Assets/Screenshots.meta
+
+# Reference rulebook (copyrighted, local reference only)
+docs/dungeoncrawlclas0000good.pdf
+
+# Demo comparison sheets (Tools > Dungeon > Compare With Demo) - regenerated on demand
+/Comparisons/

@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4118e38f9e045e42913d52500506f19, type: 3}
+  m_Name: GreatHall
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Dungeon.RoomKit
+  walls:
+  - prefab: {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
+    weight: 49
+  - prefab: {fileID: 173052, guid: f18318a9de51f9b4f993559b01c40e15, type: 3}
+    weight: 22
+  - prefab: {fileID: 140754, guid: e73dff4b52d607f4ca11b85eca8f146b, type: 3}
+    weight: 15
+  - prefab: {fileID: 189982, guid: a475e72db2f78ba41b557ca01e7ed990, type: 3}
+    weight: 10
+  floors:
+  - prefab: {fileID: 127758, guid: 0e2d311aa2f76c2479ed7bbf11aa4ffb, type: 3}
+    weight: 20
+  - prefab: {fileID: 103136, guid: 07f4a007d7093a64bbbdc962a82b494a, type: 3}
+    weight: 15
+  - prefab: {fileID: 184820, guid: 9e2131326fc97464987f58ebcb08832a, type: 3}
+    weight: 12
+  - prefab: {fileID: 126278, guid: 5409c9ff5a9c7b045a9809d71ccdcab8, type: 3}
+    weight: 12
+  - prefab: {fileID: 139024, guid: faefc7bf0b06adc4497fd8b1694fad68, type: 3}
+    weight: 4
+  - prefab: {fileID: 123934, guid: c6cb56b5c70f4f14ebf96689fda29f2c, type: 3}
+    weight: 4
+  rotateFloors: 1
+  ceiling: {fileID: 106404, guid: f5bef9e1bbbbe9f4a89a3c958ad516c7, type: 3}
+  ceilings:
+  - prefab: {fileID: 106404, guid: f5bef9e1bbbbe9f4a89a3c958ad516c7, type: 3}
+    weight: 3
+  - prefab: {fileID: 158210, guid: 9e2db045424bf654c94d3b0024430884, type: 3}
+    weight: 1.2
+  - prefab: {fileID: 178526, guid: 2d772d7fdfdff1b4e96deee9d48989bd, type: 3}
+    weight: 1.2
+  rotateCeilings: 1
+  favouriteBoost: 3
+  upperBand: {fileID: 0}
+  post: {fileID: 161912, guid: 33604d1ec5375e3488891483b470a427, type: 3}
+  postInset: 0
+  brace: {fileID: 0}
+  postEveryStorey: 1
+  innerCorner: {fileID: 117188, guid: 2f502f470bc99cf40a5d520810ab13c3, type: 3}
+  lowerBand: {fileID: 0}
+  courseTrim: {fileID: 171962, guid: 2cf48913701c4ad46a9aff440e66546e, type: 3}
+  courseTrimInset: 0.5
+  courseTrimDrop: 0.5
+  archway: {fileID: 0}
+  archBase: 2.6
+  archScale: {x: 1, y: 1, z: 1}
+  interiorPost: {fileID: 0}
+  interiorPostScale: {x: 1, y: 1, z: 1}
+  doorLeaves: []
+  propSets:
+  - name: Banners
+    pieces:
+    - {fileID: 192034, guid: 1d8a9d4bcbe4aeb488cb292d11c7c48d, type: 3}
+    - {fileID: 120464, guid: 6a169492d77438b4f94737f9d4c9109b, type: 3}
+    minPieces: 1
+    maxPieces: 2
+    maxPerRoom: 4
+    chance: 0.9
+    inset: 0.25
+    spread: 1.2
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 7.6
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Candles
+    pieces:
+    - {fileID: 169758, guid: 60c6bc14bb0e58c4a99aa8e32d80f308, type: 3}
+    - {fileID: 188278, guid: 2be6c8f228f8eb14aab539bc761d3818, type: 3}
+    - {fileID: 184338, guid: 0533ddc0f38f3c842bf18ac27f90260f, type: 3}
+    - {fileID: 142584, guid: 28b56993a0977004882db8754d3904ee, type: 3}
+    minPieces: 2
+    maxPieces: 4
+    maxPerRoom: 3
+    chance: 0.8
+    inset: 0.6
+    spread: 1
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 1
+    yawJitter: 180
+  - name: Pots
+    pieces:
+    - {fileID: 126132, guid: 9a02c2175769e3445836efb454dd5ca8, type: 3}
+    - {fileID: 113466, guid: 28c6a09d0f7dd13488875bb56d3d0fb3, type: 3}
+    - {fileID: 152502, guid: 6d25f3b3d5ab1b243b60794d51a93b36, type: 3}
+    minPieces: 1
+    maxPieces: 3
+    maxPerRoom: 2
+    chance: 0.6
+    inset: 0.9
+    spread: 0.8
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 1
+    yawJitter: 60
+  - name: Throne
+    pieces:
+    - {fileID: 143142, guid: bbe9251e064bbde42ab22c6eeacf7e1c, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.35
+    inset: 1.5
+    spread: 0
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Altar
+    pieces:
+    - {fileID: 181792, guid: 7a216d45184954f4f8fdad696d7ab71b, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.3
+    inset: 1.4
+    spread: 0.3
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Coffins
+    pieces:
+    - {fileID: 185252, guid: ac72a98c062e432478eb557db53fdc1d, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 1
+    chance: 0.35
+    inset: 1.2
+    spread: 2
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 3
+  - name: Standards
+    pieces:
+    - {fileID: 198314, guid: 88d488d0436b1f2419d0649eb60e0e1d, type: 3}
+    - {fileID: 105986, guid: ff70520d25e17ed4b9c168c849d0ed29, type: 3}
+    - {fileID: 125592, guid: 1c757b8a6a985284aa7fd4a80e427dd9, type: 3}
+    minPieces: 1
+    maxPieces: 2
+    maxPerRoom: 2
+    chance: 0.5
+    inset: 0.8
+    spread: 1
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 10
+  ceilingHangers: []
+  hangerChance: 0.15
+  rubble:
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  - {fileID: 168602, guid: 3e0f6b0ee51e6eb42a731a26210989b9, type: 3}
+  rubbleChance: 0.12
+  rubbleScale: {x: 1.44, y: 2.5, z: 1.44}
+  lightFixture: {fileID: 198228, guid: ecfc727ab52f6f44da6c79e536989f0f, type: 3}
+  lightMount: 2
+  mountHeight: 1.7
+  lightColor: {r: 1, g: 0.69, b: 0.14, a: 1}
+  lightIntensity: 3
+  lightRange: 10
+  lightHeight: 0.5
+  cellsPerLight: 6

@@ -1,0 +1,194 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4118e38f9e045e42913d52500506f19, type: 3}
+  m_Name: TortureRoom
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Dungeon.RoomKit
+  walls:
+  - prefab: {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
+    weight: 6
+  - prefab: {fileID: 189982, guid: a475e72db2f78ba41b557ca01e7ed990, type: 3}
+    weight: 2
+  - prefab: {fileID: 140754, guid: e73dff4b52d607f4ca11b85eca8f146b, type: 3}
+    weight: 1.5
+  floors:
+  - prefab: {fileID: 103136, guid: 07f4a007d7093a64bbbdc962a82b494a, type: 3}
+    weight: 4
+  - prefab: {fileID: 139220, guid: 704795cfbb02b844591f900d2b76342e, type: 3}
+    weight: 4
+  - prefab: {fileID: 127758, guid: 0e2d311aa2f76c2479ed7bbf11aa4ffb, type: 3}
+    weight: 4
+  - prefab: {fileID: 184820, guid: 9e2131326fc97464987f58ebcb08832a, type: 3}
+    weight: 2
+  rotateFloors: 1
+  ceiling: {fileID: 173574, guid: 0ea397d43eaecae4b81003acaaf9abb5, type: 3}
+  ceilings: []
+  rotateCeilings: 0
+  favouriteBoost: 3
+  upperBand: {fileID: 195864, guid: 23009f7f4b01d0c4297c7706abc8ca8e, type: 3}
+  post: {fileID: 122250, guid: 64f4a2188b2ff8746aa8ee3ca6e443a9, type: 3}
+  postInset: 0.5
+  brace: {fileID: 196348, guid: e26369d05b065684f99bb66a9ca94b93, type: 3}
+  postEveryStorey: 0
+  innerCorner: {fileID: 0}
+  lowerBand: {fileID: 0}
+  courseTrim: {fileID: 0}
+  courseTrimInset: 0.5
+  courseTrimDrop: 0.5
+  archway: {fileID: 0}
+  archBase: 2.6
+  archScale: {x: 1, y: 1, z: 1}
+  interiorPost: {fileID: 0}
+  interiorPostScale: {x: 1, y: 1, z: 1}
+  doorLeaves: []
+  propSets:
+  - name: Cages
+    pieces:
+    - {fileID: 140460, guid: cd24b009c944b1848a4b3e5904c18513, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 2
+    chance: 0.9
+    inset: 1
+    spread: 1.2
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 40
+  - name: Stocks
+    pieces:
+    - {fileID: 120480, guid: 08cedb31bf7d3414a92316d542661816, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.8
+    inset: 1.3
+    spread: 0.5
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 20
+  - name: Iron maiden
+    pieces:
+    - {fileID: 113964, guid: 650caedadb056ca40870f3a4ba441ebf, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 0.9
+    spread: 0.3
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Weights
+    pieces:
+    - {fileID: 150972, guid: 6909bf91eec20eb4b88365b6b4893dff, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 1
+    spread: 0.8
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 90
+  - name: Rack
+    pieces:
+    - {fileID: 149048, guid: 999fe1eecd3902b4ca516ecbfac9efd3, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.9
+    inset: 0
+    spread: 0
+    lineWall: 0
+    inMiddle: 1
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Bench
+    pieces:
+    - {fileID: 141482, guid: 16b5a7abcb1d9cb438b51c495e76eb52, type: 3}
+    - {fileID: 108724, guid: 48e043463d920714684df4f66731eaa4, type: 3}
+    minPieces: 1
+    maxPieces: 2
+    maxPerRoom: 1
+    chance: 0.7
+    inset: 0
+    spread: 1.4
+    lineWall: 0
+    inMiddle: 1
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 25
+  - name: Pots
+    pieces:
+    - {fileID: 113466, guid: 28c6a09d0f7dd13488875bb56d3d0fb3, type: 3}
+    - {fileID: 152502, guid: 6d25f3b3d5ab1b243b60794d51a93b36, type: 3}
+    - {fileID: 192186, guid: f61db0f6090c21848869d1d37b076d50, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 0.7
+    spread: 0.6
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 1
+    yawJitter: 60
+  - name: Machinery
+    pieces:
+    - {fileID: 130566, guid: 1a4b5e35e3879dd418861e3a2b58d6e2, type: 3}
+    - {fileID: 174916, guid: a41e053f0f61c7e4aae84e08792db35b, type: 3}
+    - {fileID: 145214, guid: e3f271622febd0f499a685ebb28fdf87, type: 3}
+    minPieces: 1
+    maxPieces: 2
+    maxPerRoom: 1
+    chance: 0.5
+    inset: 0.8
+    spread: 1
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  ceilingHangers:
+  - {fileID: 105538, guid: 2178485d4c522584aa93ff4f062b058e, type: 3}
+  - {fileID: 112966, guid: 2bca940be3594bf45bbdb46ee493b30a, type: 3}
+  - {fileID: 183246, guid: e2ed58c181474c441adc906f9a058932, type: 3}
+  hangerChance: 0.45
+  rubble:
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  rubbleChance: 0.2
+  rubbleScale: {x: 1.44, y: 2.5, z: 1.44}
+  lightFixture: {fileID: 166584, guid: 184f44cf58e82434ab30e27aaaf9b05f, type: 3}
+  lightMount: 0
+  mountHeight: 1.7
+  lightColor: {r: 1, g: 0.5, b: 0.12, a: 1}
+  lightIntensity: 3.2
+  lightRange: 11
+  lightHeight: 1
+  cellsPerLight: 6

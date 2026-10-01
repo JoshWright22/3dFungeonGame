@@ -24,6 +24,15 @@ namespace Delver.Game
         [Tooltip("Shadows from static fixtures look good but cost a shadow map each. Off by default: a dungeon has a lot of these.")]
         public bool CastShadows = false;
 
+        [Tooltip("Switched off while the viewer is further than this. A dungeon carries two hundred of these, and a light behind the fog still costs every object in its range a lighting pass.")]
+        public float CullDistance = 50f;
+
+        /// <summary>The camera lights are culled against. Falls back to Camera.main.</summary>
+        public static Transform Viewer;
+
+        // Staggered so two hundred lights do not all test on the same frame.
+        private float _nextCullCheck;
+
         private Light _light;
         private float _noiseSeed;
 
@@ -47,6 +56,22 @@ namespace Delver.Game
         private void Update()
         {
             if (_light == null) return;
+
+            if (Time.time >= _nextCullCheck)
+            {
+                _nextCullCheck = Time.time + 0.25f + Random.value * 0.1f;
+
+                Transform viewer = Viewer;
+                if (viewer == null && Camera.main != null) viewer = Camera.main.transform;
+
+                if (viewer != null)
+                {
+                    float reach = CullDistance + Range;
+                    _light.enabled = (viewer.position - transform.position).sqrMagnitude < reach * reach;
+                }
+            }
+
+            if (!_light.enabled) return;
 
             float n = Mathf.PerlinNoise(_noiseSeed, Time.time * FlickerSpeed);
             _light.intensity = BaseIntensity * (1f + (n - 0.5f) * 2f * FlickerDepth);

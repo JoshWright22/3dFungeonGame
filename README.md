@@ -35,8 +35,8 @@ docs/                   # Design and setup documentation
 ## Getting started
 
 1. Install Unity **6000.3.23f1** via Unity Hub.
-2. Re-import the Asset Store packages listed in
-   [docs/ASSET-STORE-PACKAGES.md](docs/ASSET-STORE-PACKAGES.md) — they are not in
+2. Re-import the Asset Store packages listed in Appendix B of
+   [docs/gdd.md](docs/gdd.md#appendix-b-asset-store-packages-not-in-git) — they are not in
    this repo (~1.3 GB of binaries). The project will show missing meshes and
    missing scripts until you do.
 3. Open `Assets/Created/Scenes/SampleScene.unity`.
@@ -59,12 +59,12 @@ configured for the Facepunch transport.
 
 Generation is seeded. Call `Generate(int seed)` to build a specific layout; the
 `Seeding` fields on the component control what `Start()` uses. Every client must
-build from the same seed — see the design doc for the planned host handshake.
+build from the same seed — `DungeonRunner` handles the host handshake (see `docs/gdd.md` §6.2).
 
 ## Documentation
 
-- [docs/ASSET-STORE-PACKAGES.md](docs/ASSET-STORE-PACKAGES.md) — what to
-  re-import after a fresh clone.
+- [docs/gdd.md](docs/gdd.md) — the game design document: design, build status,
+  roadmap, dungeon generation spec, and the Asset Store re-import list.
 
 ## License
 

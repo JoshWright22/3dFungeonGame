@@ -2883,18 +2883,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: a4022d0d281e00b4b9977bf3c1758b54, type: 2}
-  size: {x: 48, y: 3, z: 48}
+  size: {x: 48, y: 4, z: 48}
   roomCount: 26
-  roomMaxSize: {x: 8, y: 2, z: 8}
+  roomMaxSize: {x: 10, y: 2, z: 10}
   cubePrefab: {fileID: 4574230142376224963, guid: 310277bc4c75bd447b5c1f6ab7618bad, type: 3}
   doorPrefab: {fileID: 1478153578549848360, guid: 7733dfa9a4c460e4394a31f2af92c8c9, type: 3}
   stairPrefab: {fileID: 3500689537769372386, guid: 2582c33b12da59b4abeb2677f4b2ba1e, type: 3}
   seed: 0
   randomizeSeedOnStart: 0
   generateOnStart: 0
-  roomMinSize: {x: 3, y: 1, z: 3}
+  roomMinSize: {x: 4, y: 1, z: 4}
+  tallRoomArea: 45
   roomSeparation: 1
-  roomPlacementAttemptsPerRoom: 12
+  roomPlacementAttemptsPerRoom: 20
   loopEdgeChance: 0.16
   floorPrefabs:
   - {fileID: 137298, guid: 9830f561f80768b4f92139c1c15bc835, type: 3}
@@ -2903,11 +2904,9 @@ MonoBehaviour:
   - {fileID: 184820, guid: 9e2131326fc97464987f58ebcb08832a, type: 3}
   - {fileID: 126278, guid: 5409c9ff5a9c7b045a9809d71ccdcab8, type: 3}
   - {fileID: 139220, guid: 704795cfbb02b844591f900d2b76342e, type: 3}
-  - {fileID: 103136, guid: 07f4a007d7093a64bbbdc962a82b494a, type: 3}
-  - {fileID: 127758, guid: 0e2d311aa2f76c2479ed7bbf11aa4ffb, type: 3}
-  - {fileID: 139024, guid: faefc7bf0b06adc4497fd8b1694fad68, type: 3}
-  - {fileID: 123934, guid: c6cb56b5c70f4f14ebf96689fda29f2c, type: 3}
   doorPrefabs:
+  - {fileID: 138718, guid: cd0f01e625e553e4da51ffa4b8e3848d, type: 3}
+  - {fileID: 116930, guid: ded14b4d6268d2643ae9d947489d4667, type: 3}
   - {fileID: 138718, guid: cd0f01e625e553e4da51ffa4b8e3848d, type: 3}
   - {fileID: 116930, guid: ded14b4d6268d2643ae9d947489d4667, type: 3}
   doorLeafPrefabs:
@@ -2917,10 +2916,11 @@ MonoBehaviour:
   doorHingeOffset: 0.83
   makeDoorwaysPassable: 0
   torchPrefabs:
-  - {fileID: 0}
+  - {fileID: 166584, guid: 184f44cf58e82434ab30e27aaaf9b05f, type: 3}
   - {fileID: 117110, guid: 58f22659dd1426f4a8410923cf2db4b6, type: 3}
-  torchChancePerWall: 0.06
-  torchMinSpacing: 3
+  - {fileID: 158108, guid: eab88f6a71881d8468474cc3e3610734, type: 3}
+  torchChancePerWall: 0.22
+  torchMinSpacing: 2
   wallPrefabs:
   - {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
   - {fileID: 173052, guid: f18318a9de51f9b4f993559b01c40e15, type: 3}
@@ -2928,11 +2928,111 @@ MonoBehaviour:
   - {fileID: 140754, guid: e73dff4b52d607f4ca11b85eca8f146b, type: 3}
   - {fileID: 111768, guid: d35aef65f03ae2a4e98cc24bcb5b5cdc, type: 3}
   - {fileID: 183648, guid: 42988b617e6b4924e88885352823ba7f, type: 3}
-  ceilingPrefab: {fileID: 0}
+  ceilingPrefab: {fileID: 106404, guid: f5bef9e1bbbbe9f4a89a3c958ad516c7, type: 3}
   wallYNudge: -0.12
   doubleSidedWallPrefab: {fileID: 130878, guid: 196b993d2b0354842bd6fa90eb970550, type: 3}
   twoSidedMaterial: {fileID: 2100000, guid: a56b011c6d8f5fe4ca876a54d115373e, type: 2}
   drawHallwayGizmos: 0
+  debugStartInRoom: Gallery
+  caveChamberCount: 3
+  caveChamberMinSize: {x: 6, y: 6}
+  caveChamberMaxSize: {x: 14, y: 14}
+  caveChamberHeight: 2
+  caveFillChance: 0.46
+  caveSmoothIterations: 4
+  caveChamberMinCells: 12
+  caveSeparation: 1
+  caveAttemptsPerChamber: 40
+  caveTunnelCount: 4
+  caveTunnelLength: 40
+  caveTunnelRadius: 0
+  caveTunnelMinCells: 6
+  caveTunnelBulge: 0.4
+  caveTunnelHeight: 1
+  caveTunnelWander: 0.14
+  caveTunnelTurn: 34
+  caveTunnelBranchChance: 0.03
+  riverCount: 1
+  riverRadius: 1
+  riverDepth: 1.4
+  riverSurfaceHeight: 1
+  riverMeander: 22
+  caveFloorPrefabs:
+  - {fileID: 5491306563606166526, guid: 1978e800ebd359943b10b4505e8e082c, type: 3}
+  - {fileID: 4363021005127162021, guid: aa4d36a0b3b00cf459965ff00d33526c, type: 3}
+  caveWallPrefabs:
+  - {fileID: 125756, guid: 1c9878cdc3f9c3b4dad10dddc05eafba, type: 3}
+  - {fileID: 152838, guid: 967b2ac93cdad2247b0572cc080ad616, type: 3}
+  caveEntrancePrefabs:
+  - {fileID: 120114, guid: 323c68ad1928c8847a6bd6ea4a553bc9, type: 3}
+  caveCeilingPrefab: {fileID: 0}
+  caveWallSpansLevels: 2
+  riverBedPrefabs:
+  - {fileID: 127758, guid: 0e2d311aa2f76c2479ed7bbf11aa4ffb, type: 3}
+  waterPrefab: {fileID: 142172, guid: 11584a00ddf0d8645861ef68ab28d55b, type: 3}
+  lairMarkerPrefab: {fileID: 0}
+  torchesInCaves: 0
+  caveSurfaceMesh: 1
+  caveVoxelsPerCell: 5
+  caveSurfaceSmoothing: 2
+  caveFlatShading: 1
+  caveSurfaceDoubleSided: 1
+  caveScatterPrefabs:
+  - {fileID: 176214, guid: 2ec5801d5a2a5f1498f62ce2d0c5fec9, type: 3}
+  - {fileID: 107824, guid: f5a14b70f8bf0f84ab0e08084f970b65, type: 3}
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  - {fileID: 168602, guid: 3e0f6b0ee51e6eb42a731a26210989b9, type: 3}
+  - {fileID: 115584, guid: faa8739308e4c154f9332d2624b6e47c, type: 3}
+  - {fileID: 117630, guid: 3c7e3093f2f74ad499210774e0d01aea, type: 3}
+  caveScatterPerCell: 0.5
+  caveStalagmitePrefabs:
+  - {fileID: 195212, guid: 4e5d9824dc45f724690777e573f84304, type: 3}
+  - {fileID: 179662, guid: 08507db073ef8364d9175005ffef81f4, type: 3}
+  - {fileID: 142678, guid: bfbab0e35481c224885874476618b2f8, type: 3}
+  - {fileID: 134370, guid: 6d4478b6fdb78734f995c2ed62096141, type: 3}
+  - {fileID: 120100, guid: df09b7a48e496e04fb52b7a22b368887, type: 3}
+  - {fileID: 170590, guid: 75ed778f1e82b1a4c91b1332d1f793ea, type: 3}
+  - {fileID: 164466, guid: fd7c2c80e9550e34db706643f77b5610, type: 3}
+  caveStalactitePrefabs:
+  - {fileID: 140578, guid: 8b51fbb4d3334504d9144b90407dc0a0, type: 3}
+  - {fileID: 113030, guid: 5edd33cac2cc483409fd8b1477e9593b, type: 3}
+  - {fileID: 170954, guid: d38455e41106b784aa3bf9114d0e80ef, type: 3}
+  - {fileID: 187418, guid: 315b65f382572af4b89cde35ba50cbfb, type: 3}
+  - {fileID: 134774, guid: 7c9c6fbfcf9f4d94c8e904680bfe8e37, type: 3}
+  caveFormationSpacing: 5
+  caveFormationEdgeBias: 0.75
+  caveSurfaceNoise: 0.55
+  caveSurfaceNoiseScale: 0.12
+  caveFloorFlattenHeight: 1.4
+  caveSurfaceMaterial: {fileID: 0}
+  caveOpenMargin: 2
+  caveStairClearance: 1
+  wallPropPrefabs:
+  - {fileID: 123292, guid: df22dae66d96c2944adb65e1661878de, type: 3}
+  - {fileID: 194764, guid: 2bcc13328f8e4a44abdb601fda7419a4, type: 3}
+  - {fileID: 105538, guid: 2178485d4c522584aa93ff4f062b058e, type: 3}
+  - {fileID: 142584, guid: 28b56993a0977004882db8754d3904ee, type: 3}
+  - {fileID: 198228, guid: ecfc727ab52f6f44da6c79e536989f0f, type: 3}
+  - {fileID: 169758, guid: 60c6bc14bb0e58c4a99aa8e32d80f308, type: 3}
+  - {fileID: 162626, guid: c78cd7eb80565634c9127229d650a564, type: 3}
+  - {fileID: 140460, guid: cd24b009c944b1848a4b3e5904c18513, type: 3}
+  pillarPrefabs:
+  - {fileID: 177812, guid: 16cb051a8191e0649bc4c655ac511479, type: 3}
+  - {fileID: 194992, guid: 52301af46bf2aca4cba80ecf307a7777, type: 3}
+  - {fileID: 124088, guid: 4d74ebab2c4922f4b86d0662b41f9dda, type: 3}
+  - {fileID: 129630, guid: 276be0eeb7d45eb4eada49334e36062d, type: 3}
+  rubblePrefabs:
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  - {fileID: 168602, guid: 3e0f6b0ee51e6eb42a731a26210989b9, type: 3}
+  - {fileID: 113888, guid: 6b8ef567fab8aae4fb47c66e41111903, type: 3}
+  - {fileID: 191796, guid: 3e288e91154144d4a8449e8f03d24b20, type: 3}
+  - {fileID: 143556, guid: 03b90a12ad8bb4347a59cfa647b8e055, type: 3}
+  - {fileID: 158264, guid: 99a526f2ec49c0c4a9b0d668b8456f52, type: 3}
+  wallPropChance: 0.5
+  pillarChance: 0.2
+  pillarMinRoomArea: 30
+  rubbleChance: 0.25
+  wallPropInset: 0.55
 --- !u!4 &801771303
 Transform:
   m_ObjectHideFlags: 0

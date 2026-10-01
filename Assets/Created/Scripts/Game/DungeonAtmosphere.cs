@@ -74,6 +74,15 @@ namespace Delver.Game
 
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = Color.black;
+
+            // Nothing past the end of the fog can be seen, so nothing past it is drawn. With the
+            // default 1000 m far plane every look down a long axis rendered the whole dungeon -
+            // four times the frame cost, all of it black.
+            if (RenderSettings.fog && RenderSettings.fogMode == FogMode.Linear)
+                cam.farClipPlane = RenderSettings.fogEndDistance + FarPlaneMargin;
         }
+
+        /// <summary>Drawn past the fog's end, so geometry is fully dark before it is clipped.</summary>
+        private const float FarPlaneMargin = 4f;
     }
 }

@@ -50,6 +50,8 @@ namespace Delver.Game
 
             _light = go.AddComponent<Light>();
             _light.type = LightType.Point;
+            // The player's light must not be downgraded to vertex lighting on cave patches.
+            _light.renderMode = LightRenderMode.ForcePixel;
             _light.color = flameColor;
             _light.intensity = baseIntensity;
             _light.range = range;

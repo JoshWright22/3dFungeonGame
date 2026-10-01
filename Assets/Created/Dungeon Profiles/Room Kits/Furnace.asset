@@ -1,0 +1,139 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4118e38f9e045e42913d52500506f19, type: 3}
+  m_Name: Furnace
+  m_EditorClassIdentifier: Assembly-CSharp::Delver.Dungeon.RoomKit
+  walls:
+  - prefab: {fileID: 176122, guid: 939f27c57ef13654eafcf37ff873a454, type: 3}
+    weight: 6
+  - prefab: {fileID: 189982, guid: a475e72db2f78ba41b557ca01e7ed990, type: 3}
+    weight: 2
+  floors:
+  - prefab: {fileID: 121644, guid: 67f6358a70929f943ae115f8b4bcf075, type: 3}
+    weight: 2
+  - prefab: {fileID: 192550, guid: 3bf01e09059dad54b985779213d8dca8, type: 3}
+    weight: 2
+  - prefab: {fileID: 184820, guid: 9e2131326fc97464987f58ebcb08832a, type: 3}
+    weight: 1
+  rotateFloors: 1
+  ceiling: {fileID: 148044, guid: 8fef903d2d12d3c46b6a046f667b2a2a, type: 3}
+  ceilings: []
+  rotateCeilings: 0
+  favouriteBoost: 3
+  upperBand: {fileID: 0}
+  post: {fileID: 124088, guid: 4d74ebab2c4922f4b86d0662b41f9dda, type: 3}
+  postInset: 0.3
+  brace: {fileID: 0}
+  postEveryStorey: 0
+  innerCorner: {fileID: 117188, guid: 2f502f470bc99cf40a5d520810ab13c3, type: 3}
+  lowerBand: {fileID: 0}
+  courseTrim: {fileID: 0}
+  courseTrimInset: 0.5
+  courseTrimDrop: 0.5
+  archway: {fileID: 196358, guid: 24ae687c2d5de7245ac5884e42b824e4, type: 3}
+  archBase: 2.6
+  archScale: {x: 1, y: 0.85, z: 1}
+  interiorPost: {fileID: 129630, guid: 276be0eeb7d45eb4eada49334e36062d, type: 3}
+  interiorPostScale: {x: 1, y: 0.71, z: 1}
+  doorLeaves: []
+  propSets:
+  - name: Metal crates
+    pieces:
+    - {fileID: 187514, guid: baad99cbf08303549860656d6f6d6933, type: 3}
+    - {fileID: 155118, guid: abf07ccdbcba5d747bb51ff4aa1b29cb, type: 3}
+    - {fileID: 100710, guid: 80afd7216bd97804b8df01616325b783, type: 3}
+    minPieces: 2
+    maxPieces: 3
+    maxPerRoom: 1
+    chance: 0.9
+    inset: 1
+    spread: 0.9
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 15
+  - name: Engine
+    pieces:
+    - {fileID: 120432, guid: cd3a725b40747804c8c30fa41713b197, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 1.3
+    spread: 0.4
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Poles
+    pieces:
+    - {fileID: 155670, guid: 6d0d811f059a7bc4493f797177e42a41, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.6
+    inset: 0.8
+    spread: 0.4
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 60
+  - name: Workbench
+    pieces:
+    - {fileID: 126206, guid: edd815d6828cbde439a3373e1f684ff4, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.8
+    inset: 0
+    spread: 0
+    lineWall: 0
+    inMiddle: 1
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  - name: Fireplace
+    pieces:
+    - {fileID: 179310, guid: e657c22f66e1a6a4ba85153eed847119, type: 3}
+    minPieces: 1
+    maxPieces: 1
+    maxPerRoom: 1
+    chance: 0.5
+    inset: 0.6
+    spread: 0.3
+    lineWall: 0
+    inMiddle: 0
+    walkThrough: 0
+    mountHeight: 0
+    gradeSizes: 0
+    yawJitter: 0
+  ceilingHangers: []
+  hangerChance: 0.15
+  rubble:
+  - {fileID: 179920, guid: 646901c7a83b3d74fa146a5470ddb0cb, type: 3}
+  rubbleChance: 0.25
+  rubbleScale: {x: 1.44, y: 2.5, z: 1.44}
+  lightFixture: {fileID: 198458, guid: 6f6053668e9f3ec4f966c505fc71bf60, type: 3}
+  lightMount: 0
+  mountHeight: 1.7
+  lightColor: {r: 1, g: 0.45, b: 0.1, a: 1}
+  lightIntensity: 6
+  lightRange: 18
+  lightHeight: 1
+  cellsPerLight: 8
