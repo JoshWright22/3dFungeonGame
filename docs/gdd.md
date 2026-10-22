@@ -285,12 +285,33 @@ cut into the episode recap. The booth prompts you (*"Who's dead weight this seas
 
 ## 10. Look
 
-Darkest Dungeon's palette on Quaternius' sculpted, hand-painted kits: near-black ambient, warm
-torchlight, ink outlines (depth/normal edge detection), crushed blacks, vignette and film grain, as a
-full-screen post-process shader. The DM's broadcast elements — the ratings bar, twist cards, the
-on-air light — are the only clean, bright UI.
+**Dark and Darker's palette** on Quaternius' sculpted, hand-painted kits. Near-black warm shadows,
+stone and timber in between, and torchlight as the only real colour in a room: the fire and the
+monsters are the only saturated things on screen. Cold moonlight appears only through grates and
+shafts. Each level's own grade comes from its painting (§7), inside this range. Constants live in
+`scripts/core/palette.gd`.
 
----
+| Group | Colours |
+|---|---|
+| World | Void `#0b0a09` · Shadow `#15161a` · Stone dark `#2a2622` · Stone `#4a433b` · Stone light `#6e655a` · Timber `#3b2a1d` · Bone `#c9bba0` |
+| Light | Torch `#ffb25e` · Torch falloff `#e07a2e` · Ember `#b8471c` · Moonlight `#3e5468` (rare, low) · Arcane `#6b8f86` |
+| Accents and UI | Blood `#6e1a16` · Gold `#d8a83f` · On Air `#c2362b` (the DM's broadcast UI) · Parchment `#c9b79c` (text) |
+| Relic rarity | Dark and Darker's ladder: Poor, Common, Uncommon, Rare, Epic, Legendary, Unique |
+
+**Creature skins.** Each Bestiary monster ships in three colour variants. The cast wears the one that
+sits in the palette; the others become elites and cosmetics.
+
+| Monster | Main | Alternate (elite / cosmetic) | Not used |
+|---|---|---|---|
+| Imp (Vex) | 1, blood red `#813434` | 3, slate violet | 2, acid green: too cartoony |
+| Puglin (Biscuit) | 1, moss olive `#515b00` | 3, deep teal | 2, red: clashes with the Imp |
+
+Red and moss keep the two free monsters apart by hue under the same torchlight. The other four pick
+once the Source tier is in.
+
+**Post-process:** ink outlines (depth/normal edge detection), crushed blacks, heavy vignette and film
+grain, as a full-screen shader. The DM's broadcast elements (the ratings bar, twist cards, the
+on-air light) are the only clean, bright UI.
 
 ## 11. Engine and assets
 
