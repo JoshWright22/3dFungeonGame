@@ -1,71 +1,41 @@
-# 3dFungeonGame
+# Monster House
 
-A co-op, D&D-flavoured 3D dungeon crawler for Unity 6.3 — procedurally generated
-dungeons, rolled ability scores, and four friends who mostly make things worse for
-each other. Think a tabletop dungeon delve run at *Lethal Company* tension levels,
-with proximity voice chat doing most of the comedy and most of the horror.
+A first-person co-op wave-survival roguelite for 1–6 players. It has been a thousand years since a
+hero raided the dungeon, so the Dungeon Master is filming a reality show to lure adventurers back.
+It works. You play the Big Six — the dungeon's monsters, who never asked for any of this — fighting
+off wave after wave of adventurers, looting their bodies, and picking up anything in the dungeon to
+hit them with.
 
-**Engine:** Unity `6000.3.23f1` (LTS) · URP 17.3.0
-**Networking:** Netcode for GameObjects 2.1.1 over the Facepunch (Steam) transport
+Design: [docs/gdd.md](docs/gdd.md).
 
----
+**Engine:** Godot 4.7 (GDScript, Jolt physics) · **Networking:** GodotSteam (`SteamMultiplayerPeer`), ENet for LAN
 
-## Repository layout
-
-```
-Assets/
-├── Created/            # Everything hand-authored for this game
-│   ├── Animation/      # Retargeted character animation
-│   ├── Prefabs/        # Player, dungeon tiles, doors, stairs, pickups
-│   ├── Scenes/         # SampleScene — the playable scene
-│   └── Scripts/
-│       ├── BlueRaja/          # Priority queue library used by the pathfinder
-│       ├── Dungeon Generator/ # Seeded 3D generator (see below)
-│       ├── Network/           # Steam lobbies, transport, ownership helpers
-│       ├── PickUpItems/       # Item scriptable objects and pickup detection
-│       ├── PlayerMovement/    # Camera and locomotion helpers
-│       ├── PlayerStats/       # Ability scores, HP, equipped items
-│       └── RoomGeneration/    # BSP room splitting
-├── Imports/            # Third-party packages — mostly gitignored, see docs/
-Packages/               # UPM manifest
-ProjectSettings/        # Unity project settings
-docs/                   # Design and setup documentation
-```
+The original Unity project is preserved on the [`unity`](../../tree/unity) branch.
 
 ## Getting started
 
-1. Install Unity **6000.3.23f1** via Unity Hub.
-2. Re-import the Asset Store packages listed in Appendix B of
-   [docs/gdd.md](docs/gdd.md#appendix-b-asset-store-packages-not-in-git) — they are not in
-   this repo (~1.3 GB of binaries). The project will show missing meshes and
-   missing scripts until you do.
-3. Open `Assets/Created/Scenes/SampleScene.unity`.
-4. Press **Play**. Use the Host / Join buttons; joining over Steam needs the
-   host's SteamID64 pasted into the field.
+1. Install [Godot 4.7](https://godotengine.org/download) (standard build, not .NET).
+2. From the repo root, fetch third-party content:
 
-Steam features require Steam running and a valid `steam_appid.txt` / app ID
-configured for the Facepunch transport.
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tools/setup.ps1
+   ```
 
-## Dungeon generation
+   This downloads the Quaternius packs and GodotSteam into gitignored folders. The Quaternius
+   licence allows use in games but not redistributing the assets, so they are never committed.
+3. Open the project in Godot. The first import takes a few minutes.
 
-`Generator3D` builds a level in four stages on a `Grid3D<CellType>`:
+The Bestiary monsters beyond the Imp and Puglin are in the paid Source tier of
+[Bestiary — Dungeon Monsters Kit](https://quaternius.itch.io/bestiary-dungeon-monsters-kit). Put the
+purchased zip in `.cache/downloads/bestiary-dungeon-monsters-kit/` and re-run the setup script.
 
-1. **Place rooms** — random non-intersecting `BoundsInt` volumes.
-2. **Triangulate** — `Delaunay3D` tetrahedralisation over the room centres.
-3. **Select edges** — `Prim` minimum spanning tree, plus a few reintroduced
-   edges so the graph has loops rather than being a pure tree.
-4. **Carve hallways** — `DungeonPathfinder3D`, an A* that prices stairs and
-   hallway reuse so corridors merge instead of running in parallel.
+## Layout
 
-Generation is seeded. Call `Generate(int seed)` to build a specific layout; the
-`Seeding` fields on the component control what `Start()` uses. Every client must
-build from the same seed — `DungeonRunner` handles the host handshake (see `docs/gdd.md` §6.2).
-
-## Documentation
-
-- [docs/gdd.md](docs/gdd.md) — the game design document: design, build status,
-  roadmap, dungeon generation spec, and the Asset Store re-import list.
-
-## License
-
-Released for educational and non-commercial development purposes.
+```
+addons/godotsteam/   GodotSteam GDExtension (fetched)
+assets/quaternius/   Quaternius packs (fetched)
+docs/                Design
+scenes/              Scenes
+scripts/core/        Autoloads: Game (run state), Ratings (the show's audience)
+tools/               setup.ps1
+```
