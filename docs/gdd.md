@@ -19,20 +19,21 @@ The problem is his cast: **the Big Six**, the dungeon's six resident monsters, w
 this, do not care about the show, and would very much like to go back to their naps. They fight
 anyway — the adventurers are stealing their stuff, and the adventurers drop loot.
 
-**Monster House is a first-person co-op wave-survival roguelite for 1–6 players.** You play the
+**Monster House is a third-person co-op wave-survival roguelite for 1–6 players.** You play the
 monsters defending your home against escalating waves of adventurers, looting their bodies, stacking
 items Risk of Rain 2–style, and deciding how long you dare keep the cameras rolling.
 
 ### The one-line genre
 
-*Risk of Rain 2's run structure, in first person, with Overwatch's hero roster, R.E.P.O.'s
-grab-anything physics and Darkest Dungeon's narrator — run in reverse Clank!.*
+*Risk of Rain 2 — third-person camera, fast movement, run structure — with Overwatch's hero roster,
+R.E.P.O.'s grab-anything physics and Darkest Dungeon's narrator, run in reverse Clank!, across
+hand-built levels that each started as a painting.*
 
 ### Reference games and what we take
 
 | From | We take |
 |---|---|
-| **Risk of Rain 2** | The run: stages, a difficulty clock that only climbs, gold → chests → stacking items, a "charge the objective while the horde comes" climax per stage, loops. |
+| **Risk of Rain 2** | The camera and the run: over-the-shoulder third person, fast movement, hand-made stages with variants, a difficulty clock that only climbs, gold → chests → stacking items, a "charge the objective while the horde comes" climax per stage, loops. |
 | **Clank! (inverted)** | In Clank, noise wakes the dragon. Here, **ratings** — spectacle — bring *more adventurers*. Showing off makes the run harder and richer. |
 | **Overwatch / TF2** | A fixed cast with readable silhouettes, one-per-team hero lock, and in-character voice lines that play off each other. |
 | **R.E.P.O. / Lethal Company** | Physical hands: grab, carry and throw anything in the dungeon. Proximity voice. |
@@ -60,7 +61,7 @@ A run is a **season**. Each stage is an **episode**. Target length: 30–45 minu
 | # | Phase | What happens |
 |---|---|---|
 | 1 | **The Green Room** (hub) | Lobby and drop-in point. Pick your monster (one each). The confessional booth, the scoreboard, the DM's desk. The host starts the season. |
-| 2 | **Episode** (stage) | A generated wing of the dungeon. Adventurers pour in from the surface stairs in waves. Kill them, loot them, open the dungeon's dusty old chests, find the **Spotlight**. |
+| 2 | **Episode** (stage) | A hand-built wing of the dungeon (§7). Adventurers pour in from the surface stairs in waves. Kill them, loot them, open the dungeon's dusty old chests, find the **Spotlight**. |
 | 3 | **The Main Event** | Activate the Spotlight. The DM goes live; a timed horde plus a **named Hero party** (the stage boss) descends. Survive until the broadcast ends. |
 | 4 | **Encore?** | Bank the season's gold and end the run, **or** renew for another episode: deeper wing, harder clock, bigger multiplier. |
 | 5 | **The Recap** | Highlight reel, confessional clips, MVP vote, and what the gold buys (cosmetics and new content for the pool — never stats). |
@@ -85,21 +86,45 @@ juggling an adventurer, surviving at 1 HP, a teammate throwing you into a crowd.
 
 ## 4. Moment to moment
 
-First person, with your monster's hands and weapon in view.
+Third person, Risk of Rain 2 style: an over-the-shoulder camera with a centre crosshair, so you see
+your monster — the class is the silhouette — and aim where the crosshair points.
 
 | Input | Action |
 |---|---|
-| WASD · Space · Shift · Ctrl | Move, jump, sprint, crouch |
+| WASD · Space · Ctrl | Move, jump, sprint toggle |
 | LMB | **Primary** — your monster's attack. With a grabbed object: swing it. |
 | RMB | **Secondary** ability |
-| Shift (tap) / Ctrl | **Utility** (each class differs: blink, pounce, roll…) |
+| Shift | **Utility** — the class's movement skill (blink, pounce, grapple, roll…) |
 | R | **Special** — the big cooldown |
-| F | **Grab** whatever you're looking at / drop it. Hold to carry heavy things. |
+| F | **Grab** whatever is under the crosshair / drop it. Hold to carry heavy things. |
 | Q | **Throw** what you're holding. Hold to charge. |
 | Tab | Scoreboard / items |
 
 Risk of Rain 2 gives every survivor four skills (primary, secondary, utility, special); we keep that,
 plus the universal grab/throw.
+
+### Movement
+
+Movement is the skill floor and the fun. RoR2's baseline, with more on top, and every monster moves
+differently:
+
+- **Shared:** sprint (no stamina, cancels on attack like RoR2), jump, air control, a ledge mantle,
+  slide out of a sprint, and momentum kept off ramps and stairs. Fall damage off: falling is free,
+  so verticality is a toy, not a tax.
+- **Movement items:** relics stack movement the RoR2 way — extra jumps, speed, a dash charge.
+- **Per monster** (the Utility slot, plus a passive):
+
+| Monster | Movement |
+|---|---|
+| Vex (Imp) | *Blink* short teleport; slow fall on wing-flaps |
+| Biscuit (Puglin) | *Scurry*: runs up short walls, fits through gaps nobody else can |
+| Nix (Goblin) | *Grapple*: hook to anchors, ledges and adventurers; swing |
+| Old Rattles (Skeleton) | *Fall Apart*: collapse into a pile to dodge, reassemble where the skull lands |
+| Brock (Werewolf) | *Pounce* leap; wall-jump; all-fours sprint is the fastest ground speed |
+| Pebble (Golem) | *Charge* through enemies and breakable walls; ground-slam out of any jump |
+
+Levels are built for this movement: high routes, gaps only some monsters can cross, grapple anchors,
+walls to scurry.
 
 **Downed, not dead.** At 0 HP a monster ragdolls and is *downed*. A teammate can pick up the body and
 carry it to a **Makeup Chair** (revive point), or revive in place by holding F. If the whole cast is
@@ -171,10 +196,28 @@ Sunrise Company*. Each has a leader with a big readable move set and a support c
 
 ## 7. The dungeon (maps)
 
-Each episode is a generated **wing**: Crypt, Flooded Cellars, Forge, Overgrown Garden, the Great Hall,
-and the Surface Village for the finale. Built from Quaternius modular kits on a 2 m × 3 m grid.
+Each episode is a **hand-built wing**, like Risk of Rain 2's stages. Built in Godot from the
+Quaternius modular kits (2 m × 3 m grid), plus custom geometry where a painting asks for it.
 
-What a wing needs for this game (generation priorities):
+### Levels from paintings
+
+Every level starts from a painting supplied by the designer. The painting is the brief:
+
+1. **Read the painting.** Focal point, light source(s) and their colour, palette, depth layers
+   (foreground / midground / far), the shapes that read at a glance, the mood.
+2. **Write a level brief** (`docs/levels/<name>.md`): which painting, what to keep, the play spaces it
+   implies, where the camera's postcard view is, spawn stairs, the Spotlight arena.
+3. **Block out** the level in Godot with simple shapes to test movement and fights.
+4. **Dress** it with kit pieces and props until the postcard view matches the painting's composition.
+5. **Light and grade** it from the painting: sun, fill, fog and ambient colours sampled from the
+   painting itself, and the post-process grade tuned to its palette.
+6. **The painting is the title card.** Each episode opens on the painting, then dissolves into the
+   matching camera view of the level.
+
+Each level ships with **variants** (RoR2's stage variants): the same map with different time of
+day, prop layout, open/closed routes and spawn stairs, so it doesn't play the same twice.
+
+What every level needs for this game:
 
 1. **Arenas joined by chokepoints** — big rooms to fight hordes, corridors to funnel them.
 2. **Loops** — you must be able to kite a horde in a circle (RoR2 survival depends on it).
@@ -183,8 +226,10 @@ What a wing needs for this game (generation priorities):
    flows inward.
 5. **Props everywhere** — every room stocked with things to grab and throw.
 6. **A Spotlight stage** — one large, readable arena per wing for the Main Event.
+7. **Movement routes** — high paths, grapple anchors, scurry walls and gaps that reward each
+   monster's movement.
 
-Generation is seeded and deterministic: every client builds the same wing from the same seed.
+Chest, prop and spawn placement within a level is seeded, so every client agrees from one integer.
 
 ---
 
@@ -258,7 +303,7 @@ on-air light — are the only clean, bright UI.
 
 ## 12. Open questions
 
-1. How do relics read in first person — do you see them on your monster's hands?
+1. How do relics read on the monster in third person — worn on the model, like RoR2's item displays?
 2. Can players pick each other up while healthy (Golem Teammate Toss says yes — does everyone)?
 3. Friendly fire: on for thrown objects only?
 4. Does the Surface Village finale exist in a first release, or later?

@@ -158,9 +158,9 @@ func _load_save() -> void:
 func _register_inputs() -> void:
 	var keys := {
 		"move_forward": [KEY_W], "move_back": [KEY_S], "move_left": [KEY_A], "move_right": [KEY_D],
-		"jump": [KEY_SPACE], "sprint": [KEY_SHIFT], "crouch": [KEY_CTRL, KEY_C],
-		"throw_left": [KEY_Q], "throw_right": [KEY_E], "sheet": [KEY_TAB], "pause": [KEY_ESCAPE],
-		"voice": [KEY_V], "debug_map": [KEY_F3],
+		"jump": [KEY_SPACE], "sprint": [KEY_CTRL], "utility": [KEY_SHIFT], "special": [KEY_R],
+		"grab": [KEY_F], "throw": [KEY_Q], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE],
+		"voice": [KEY_V],
 	}
 	for action in keys:
 		_add_action(action)
@@ -168,7 +168,7 @@ func _register_inputs() -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = k
 			InputMap.action_add_event(action, ev)
-	for pair in [["hand_left", MOUSE_BUTTON_LEFT], ["hand_right", MOUSE_BUTTON_RIGHT]]:
+	for pair in [["primary", MOUSE_BUTTON_LEFT], ["secondary", MOUSE_BUTTON_RIGHT]]:
 		_add_action(pair[0])
 		var mb := InputEventMouseButton.new()
 		mb.button_index = pair[1]

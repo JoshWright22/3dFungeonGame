@@ -1,6 +1,6 @@
 # Monster House
 
-A first-person co-op wave-survival roguelite for 1–6 players. It has been a thousand years since a
+A third-person co-op wave-survival roguelite for 1–6 players. It has been a thousand years since a
 hero raided the dungeon, so the Dungeon Master is filming a reality show to lure adventurers back.
 It works. You play the Big Six — the dungeon's monsters, who never asked for any of this — fighting
 off wave after wave of adventurers, looting their bodies, and picking up anything in the dungeon to
