@@ -1,5 +1,10 @@
 ; Engine configuration file.
-; Godot 4.7. Input actions are registered at runtime by scripts/core/game.gd (see _register_inputs).
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -31,13 +36,11 @@ window/size/viewport_height=900
 
 [physics]
 
-3d/physics_engine="Jolt Physics"
-common/physics_ticks_per_second=60
 common/physics_jitter_fix=0.0
+3d/physics_engine="Jolt Physics"
 
 [rendering]
 
-lights_and_shadows/positional_shadow/atlas_size=4096
+textures/canvas_textures/default_texture_filter=0
 anti_aliasing/quality/msaa_3d=1
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
-textures/canvas_textures/default_texture_filter=0

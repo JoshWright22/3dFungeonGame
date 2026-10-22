@@ -25,9 +25,9 @@ items Risk of Rain 2–style, and deciding how long you dare keep the cameras ro
 
 ### The one-line genre
 
-*Risk of Rain 2 — third-person camera, fast movement, run structure — with Overwatch's hero roster,
-R.E.P.O.'s grab-anything physics and Darkest Dungeon's narrator, run in reverse Clank!, across
-hand-built levels that each started as a painting.*
+*Risk of Rain 2 — third-person camera, fast movement, open stages, run structure — with Overwatch's
+hero roster and an extremely online cast, run in reverse Clank!, across hand-built levels that each
+started as a painting.* At heart it plays like Risk of Rain 2; the twist is the show.
 
 ### Reference games and what we take
 
@@ -36,15 +36,14 @@ hand-built levels that each started as a painting.*
 | **Risk of Rain 2** | The camera and the run: over-the-shoulder third person, fast movement, hand-made stages with variants, a difficulty clock that only climbs, gold → chests → stacking items, a "charge the objective while the horde comes" climax per stage, loops. |
 | **Clank! (inverted)** | In Clank, noise wakes the dragon. Here, **ratings** — spectacle — bring *more adventurers*. Showing off makes the run harder and richer. |
 | **Overwatch / TF2** | A fixed cast with readable silhouettes, one-per-team hero lock, and in-character voice lines that play off each other. |
-| **R.E.P.O. / Lethal Company** | Physical hands: grab, carry and throw anything in the dungeon. Proximity voice. |
 | **Darkest Dungeon** | The look (ink and shadow, warm torchlight on black) and a narrator who comments on everything. |
 
 ---
 
 ## 2. Pillars
 
-1. **Everything is a weapon.** Any object in the dungeon can be picked up and swung or thrown: a
-   lamp, a rock, a chair, a dead adventurer. Damage comes from mass and speed.
+1. **It plays like Risk of Rain 2.** Fast third-person movement, four skills, stacking items, open
+   stages, a difficulty clock. No inventory juggling, no picking things up: you fight and you loot chests.
 2. **Showing off is the push-your-luck.** Style earns ratings; ratings multiply loot and summon bigger
    waves. Playing it safe pays badly. Playing it loud gets you killed.
 3. **Six monsters, six players, no duplicates.** Each character is one person's job. Hero-locked, like
@@ -73,8 +72,8 @@ shows it as the DM's audience bar: *Local Interest → Regional Buzz → Kingdom
 
 ### Ratings — Clank, inverted
 
-Ratings rise for spectacle: multi-kills, environmental kills, throw kills, killing with absurd objects,
-juggling an adventurer, surviving at 1 HP, a teammate throwing you into a crowd.
+Ratings rise for spectacle: multi-kills, mid-air kills, burning kills, elite kills, juggling an
+adventurer, surviving at 1 HP, a teammate tossing you into a crowd (Pebble's Teammate Toss).
 
 - Ratings **multiply gold** dropped by adventurers.
 - Ratings **raise the difficulty clock** — more and tougher adventurers, elite parties sooner.
@@ -92,16 +91,14 @@ your monster — the class is the silhouette — and aim where the crosshair poi
 | Input | Action |
 |---|---|
 | WASD · Space · Ctrl | Move, jump, sprint toggle |
-| LMB | **Primary** — your monster's attack. With a grabbed object: swing it. |
+| LMB | **Primary** — your monster's attack (hold to repeat). |
 | RMB | **Secondary** ability |
 | Shift | **Utility** — the class's movement skill (blink, pounce, grapple, roll…) |
 | R | **Special** — the big cooldown |
-| F | **Grab** whatever is under the crosshair / drop it. Hold to carry heavy things. |
-| Q | **Throw** what you're holding. Hold to charge. |
+| E | **Interact** — open a chest, use a shrine, revive a teammate. |
 | Tab | Scoreboard / items |
 
-Risk of Rain 2 gives every survivor four skills (primary, secondary, utility, special); we keep that,
-plus the universal grab/throw.
+Risk of Rain 2 gives every survivor four skills (primary, secondary, utility, special); we keep that.
 
 ### Movement
 
@@ -126,25 +123,22 @@ differently:
 Levels are built for this movement: high routes, gaps only some monsters can cross, grapple anchors,
 walls to scurry.
 
-**Downed, not dead.** At 0 HP a monster ragdolls and is *downed*. A teammate can pick up the body and
-carry it to a **Makeup Chair** (revive point), or revive in place by holding F. If the whole cast is
+**Downed, not dead.** At 0 HP a monster is *downed*. A teammate revives them by standing over them
+and holding E, or they get back up at a **Makeup Chair** after the wave. If the whole cast is
 down, the episode is cancelled — run over.
 
 ### Items
 
-- **Gold** drops from adventurers (×ratings multiplier) and from smashing dungeon props.
+- **Gold** drops from adventurers (×ratings multiplier), shared by the whole cast as in Risk of Rain 2.
 - **Chests** — the dungeon's own treasure, untouched for 1000 years — cost gold. They give **relics**:
   passive stacking items, Risk of Rain 2 rules (common/uncommon/legendary, stacks scale linearly or
   hyperbolically).
-- **Adventurer gear** — swords, shields, staves, potions, torches — drops as **physical objects**.
-  Grab and use them, throw them, or carry them to the **Pawn Table** for gold.
 
 ### Combat
 
-- Your monster's primary is reliable damage. Grabbed objects are the spectacle: damage =
-  mass × impact speed, so a thrown barrel is great and a thrown candle is a joke.
-- Adventurers ragdoll on death and stay as props — grab one and swing it at its friends.
-- Hits have weight: hit-stop, knockback, camera shake, physical reactions.
+- Each monster's kit is its whole toolset. Hits have weight: hit-stop, knockback that can launch
+  adventurers into the air, camera shake, damage numbers. Crits double damage (base 1%).
+- Adventurers collapse on death and sink away, Risk of Rain 2-style.
 
 ---
 
@@ -196,8 +190,11 @@ Sunrise Company*. Each has a leader with a big readable move set and a support c
 
 ## 7. The dungeon (maps)
 
-Each episode is a **hand-built wing**, like Risk of Rain 2's stages. Built in Godot from the
-Quaternius modular kits (2 m × 3 m grid), plus custom geometry where a painting asks for it.
+Each episode is a **hand-built, open stage**, like Risk of Rain 2's: roughly 200–400 m across, mostly
+open ground with high routes and cover, not corridors. The "dungeon" is huge — sunken courtyards,
+collapsed caverns open to the sky, flooded halls the size of a valley. Built in Godot from the
+Quaternius kits, plus terrain and custom geometry where a painting asks for it. Adventurers spawn
+around the players on the navmesh, RoR2-style, rather than from fixed doors.
 
 ### Levels from paintings
 
@@ -221,10 +218,11 @@ What every level needs for this game:
 
 1. **Arenas joined by chokepoints** — big rooms to fight hordes, corridors to funnel them.
 2. **Loops** — you must be able to kite a horde in a circle (RoR2 survival depends on it).
-3. **Verticality** — balconies, stairs, pits. Throwing adventurers off ledges is premium content.
+3. **Verticality** — mesas, balconies, stairs, pits. Knocking adventurers off ledges is premium content.
 4. **Spawn stairs** — adventurers enter from surface stairways at the map's edges, so the fight
    flows inward.
-5. **Props everywhere** — every room stocked with things to grab and throw.
+5. **Set dressing that makes sense** — props in sets (a camp, a dining table, a smithy, a hoard),
+   composed big → medium → small, with empty ground between sets. Scenery, not loot.
 6. **A Spotlight stage** — one large, readable arena per wing for the Main Event.
 7. **Movement routes** — high paths, grapple anchors, scurry walls and gaps that reward each
    monster's movement.
@@ -238,10 +236,15 @@ Chest, prop and spawn placement within a level is seeded, so every client agrees
 In-character barks, Overwatch-style, plus the DM as narrator.
 
 - **Trigger → conditions → line**, with cooldowns and priorities. Triggers: episode start, kills,
-  multi-kills, a teammate downed, an absurd object grabbed, ratings thresholds, boss arrival.
+  multi-kills, a teammate downed, a relic opened, ratings thresholds, boss arrival, idle moments.
 - **Call and response**: a line can request a reply from a specific monster if they are in earshot.
   Rivalries and friendships get their own exchanges.
 - **The DM** speaks as subtitled narration, Darkest Dungeon style.
+- **The cast is extremely online.** The monsters have scrying-stone phones on the *Crystal Net* and
+  talk like it: "Clip that", "skill issue", "main character energy", "ratio'd by a barrel", "touch
+  grass? I SET the grass on fire". They doomscroll between waves, check follower counts, and treat
+  the DM's show as content for their own channels. It's why they don't care about his show: they
+  have their own. Adventurers, by contrast, have never heard of the Crystal Net.
 - **Adventurers bark too** — awed, overconfident, and badly informed about the dungeon.
 - Monster lines play positionally and **duck under player voice chat**.
 - Until there is voice acting, monsters speak creature gibberish with subtitles.
@@ -253,9 +256,9 @@ Samples:
 > **Pebble:** I packed lunches.
 > **Vex:** Pebble, those are rocks.
 
-> *Pebble picks up an adventurer*
+> *Pebble Big Hugs a hero*
 > **Pebble:** I'm so sorry.
-> *(throws him)*
+> *(does not let go)*
 
 > *Old Rattles falls apart*
 > **Old Rattles (skull):** Somebody grab the hip. No — the *other* hip.
@@ -309,8 +312,15 @@ sits in the palette; the others become elites and cosmetics.
 Red and moss keep the two free monsters apart by hue under the same torchlight. The other four pick
 once the Source tier is in.
 
-**Post-process:** ink outlines (depth/normal edge detection), crushed blacks, heavy vignette and film
-grain, as a full-screen shader. The DM's broadcast elements (the ratings bar, twist cards, the
+**Lighting is flat and readable first** (Risk of Rain 2 has to be legible at a glance): strong sky
+ambient, one soft key light, no crushed blacks. Fires are accents, not the only light.
+
+**Post-process** (`shaders/sketch_post.gdshader`), after Dark and Darker's class sketches: ink outlines
+from silhouettes and geometric creases (reconstructed from depth, so texture detail never gets inked),
+light cross-hatching in the darkest areas only, shadows lifted toward dark parchment, a gentle
+plum/torch split-tone, star glints on hot highlights, soft vignette and grain. Characters get a
+character-only rim light from behind (`CameraRig.rim_light`) and glossier materials, so they read
+against any background. The DM's broadcast elements (the ratings bar, twist cards, the
 on-air light) are the only clean, bright UI.
 
 ## 11. Engine and assets
@@ -326,6 +336,6 @@ on-air light) are the only clean, bright UI.
 
 1. How do relics read on the monster in third person — worn on the model, like RoR2's item displays?
 2. Can players pick each other up while healthy (Golem Teammate Toss says yes — does everyone)?
-3. Friendly fire: on for thrown objects only?
+3. Friendly fire: off entirely, or on for a DM twist ("Plot twist: friendly fire is ON")?
 4. Does the Surface Village finale exist in a first release, or later?
 5. Does the season have a final boss (the hero who raided the dungeon 1000 years ago)?

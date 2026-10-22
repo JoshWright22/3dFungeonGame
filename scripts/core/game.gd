@@ -159,8 +159,8 @@ func _register_inputs() -> void:
 	var keys := {
 		"move_forward": [KEY_W], "move_back": [KEY_S], "move_left": [KEY_A], "move_right": [KEY_D],
 		"jump": [KEY_SPACE], "sprint": [KEY_CTRL], "utility": [KEY_SHIFT], "special": [KEY_R],
-		"grab": [KEY_F], "throw": [KEY_Q], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE],
-		"voice": [KEY_V],
+		"interact": [KEY_E], "scoreboard": [KEY_TAB], "pause": [KEY_ESCAPE],
+		"voice": [KEY_V], "slide": [KEY_C], "dev_swap": [KEY_F1], "dev_spawn": [KEY_F2],
 	}
 	for action in keys:
 		_add_action(action)
